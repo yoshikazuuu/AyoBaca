@@ -17,7 +17,7 @@ struct FloatingAlphabetBackground: View {
     let fontStyle: FontType // e.g., .dylexicRegular, .dylexicBold
     // Optional: Specify allowed characters, defaults to uppercase A-Z
     let characters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -28,7 +28,8 @@ struct FloatingAlphabetBackground: View {
                     let initialX = CGFloat.random(in: 0...geometry.size.width)
                     let initialY = CGFloat.random(in: 0...geometry.size.height)
                     let initialRotation = Double.random(in: -45...45)
-                    let opacity = Double.random(in: 0.05...0.15) // Subtle opacity
+                    // *** Calculate the static opacity for this letter instance ***
+                    let letterOpacity = Double.random(in: 0.05...0.15) // Subtle opacity
                     let duration = Double.random(in: 6...12) // Slower, gentler animation
                     let delay = Double.random(in: 0...5)
                     // Random horizontal and vertical drift amounts
@@ -36,11 +37,14 @@ struct FloatingAlphabetBackground: View {
                     let driftY = animate ? CGFloat.random(in: -25...25) : 0
                     // Slight additional rotation during animation
                     let animatedRotation = animate ? Double.random(in: -15...15) : 0
-
+                    
                     Text(letter)
-                        // Use your custom font extension here
+                    // Use your custom font extension here
                         .font(.appFont(fontStyle, size: size))
-                        .foregroundColor(.white.opacity(opacity))
+                    // *** Set the base color to white (or your desired base) ***
+                        .foregroundColor(.white)
+                    // *** Apply the opacity separately ***
+                        .opacity(letterOpacity)
                         .rotationEffect(.degrees(initialRotation + animatedRotation))
                         .position(x: initialX, y: initialY)
                         .offset(x: driftX, y: driftY)
@@ -60,9 +64,8 @@ struct FloatingAlphabetBackground: View {
             // Start the animation shortly after the view appears
             // Using a slight delay can sometimes help ensure geometry is ready
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                 withAnimation { // Use withAnimation for the initial state change if desired
-                    animate = true
-                 }
+                // No need for withAnimation here if the animation modifier handles it
+                animate = true
             }
         }
         // Important: Ignore safe area if you want it to go edge-to-edge
@@ -82,10 +85,10 @@ struct FloatingAlphabetBackground: View {
             endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
-
+        
         // Add the floating alphabet background
         FloatingAlphabetBackground(count: 25, fontStyle: .dylexicRegular) // Use your actual font style
-
+        
         // Add some foreground content to test interaction
         VStack {
             Text("Foreground Content")

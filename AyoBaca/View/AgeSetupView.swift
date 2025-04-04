@@ -65,7 +65,7 @@ struct AgeSetupView: View {
                             .opacity(animateAgeSelector ? 1 : 0)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: 10) {
                                 ForEach(ages, id: \.self) { age in
                                     Button {
                                         withAnimation(.spring(response: 0.4)) {
@@ -116,7 +116,7 @@ struct AgeSetupView: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .frame(height: 80)
+                            .frame(height: 70)
                         }
                         .padding(.vertical, 5)
                     }
