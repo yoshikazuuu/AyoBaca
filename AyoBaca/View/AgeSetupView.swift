@@ -65,7 +65,7 @@ struct AgeSetupView: View {
                             .opacity(animateAgeSelector ? 1 : 0)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
+                            HStack(spacing: 15) {
                                 ForEach(ages, id: \.self) { age in
                                     Button {
                                         withAnimation(.spring(response: 0.4)) {
@@ -102,10 +102,9 @@ struct AgeSetupView: View {
                                                     )
                                             )
                                             .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                            .scaleEffect(onboardingState.childAge == age ? 1.1 : 1.0)
                                     }
                                     .buttonStyle(PlainButtonStyle())
-                                    .padding(.vertical, 5)
+                                    .scaleEffect(onboardingState.childAge == age ? 1.1 : 1.0)
                                     .scaleEffect(animateAgeSelector ? 1 : 0.5)
                                     .opacity(animateAgeSelector ? 1 : 0)
                                     .animation(
@@ -116,9 +115,10 @@ struct AgeSetupView: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .frame(height: 70)
+                            .frame(height: 100) // Increased height to accommodate the taller buttons + scaling
                         }
                         .padding(.vertical, 5)
+
                     }
                     .frame(width: geometry.size.width)
                     
