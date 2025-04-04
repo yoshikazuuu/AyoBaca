@@ -13,23 +13,7 @@ struct WelcomeView: View {
             ZStack {
                 Color("AppOrange").ignoresSafeArea()
                 
-                // Animated floating elements in background
-                ForEach(0..<8) { index in
-                    Image(systemName: ["book.fill", "pencil", "highlighter", "text.book.closed.fill", "abc"].randomElement()!)
-                        .font(.system(size: CGFloat.random(in: 20...40)))
-                        .foregroundColor(.white.opacity(0.1))
-                        .position(
-                            x: CGFloat.random(in: 0...geometry.size.width),
-                            y: CGFloat.random(in: 0...geometry.size.height)
-                        )
-                        .offset(y: animateTitle ? CGFloat.random(in: -20...20) : 0)
-                        .animation(
-                            Animation.easeInOut(duration: Double.random(in: 3...5))
-                                .repeatForever(autoreverses: true)
-                                .delay(Double.random(in: 0...2)),
-                            value: animateTitle
-                        )
-                }
+                FloatingAlphabetBackground(count: 25, fontStyle: .dylexicRegular)
                 
                 VStack(spacing: 0) {
                     VStack(spacing: -30) {
