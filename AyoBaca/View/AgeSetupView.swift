@@ -25,6 +25,8 @@ struct AgeSetupView: View {
             ZStack {
                 Color("AppOrange").ignoresSafeArea()
                 
+                FloatingAlphabetBackground(count: 25, fontStyle: .dylexicRegular)
+                
                 VStack(spacing: 20) {
                     // Back button row
                     HStack {
@@ -49,8 +51,8 @@ struct AgeSetupView: View {
                     
                     // Title
                     Text("Umur Anak")
-                        .font(.largeTitle)
-                        .fontWeight(.medium)
+                        .font(.appFont(.rethinkExtraBold, size: 32))
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                         .opacity(animateTitle ? 1 : 0)
                         .offset(y: animateTitle ? 0 : 20)
@@ -59,7 +61,7 @@ struct AgeSetupView: View {
                     VStack {
                         Text("Pilih umur:")
                             .foregroundColor(.white)
-                            .font(.headline)
+                            .font(.appFont(.rethinkRegular, size: 24))
                             .opacity(animateAgeSelector ? 1 : 0)
                         
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -153,7 +155,7 @@ struct AgeSetupView: View {
                         // Speech bubble only shows when mascot is animated
                         if animateMascot {
                             Text("Berapa umurmu?")
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.appFont(.rethinkRegular, size: 16))
                                 .foregroundColor(.black)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)

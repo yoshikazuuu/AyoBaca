@@ -17,6 +17,8 @@ struct NameSetupView: View {
                     .onTapGesture {
                         isTextFieldFocused = false
                     }
+                
+                FloatingAlphabetBackground(count: 25, fontStyle: .dylexicRegular)
 
                 VStack(spacing: 20) {
                     // Back button row
@@ -43,8 +45,8 @@ struct NameSetupView: View {
 
                     // Title
                     Text("Nama Anak")
-                        .font(.largeTitle)
-                        .fontWeight(.medium)
+                        .font(.appFont(.rethinkExtraBold, size: 32))
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
                         .opacity(animateTitle ? 1 : 0)
                         .offset(y: animateTitle ? 0 : 20)
@@ -55,10 +57,10 @@ struct NameSetupView: View {
                             .padding()
                             .background(Color.white.opacity(0.9))
                             .cornerRadius(25)
-                            .foregroundColor(.gray) // Placeholder color
+                            .foregroundColor(Color("AppOrange")) // Placeholder color
                             .accentColor(Color("AppOrange")) // Cursor color
                             .multilineTextAlignment(.center)
-                            .font(.title3)
+                            .font(.appFont(.rethinkBold, size: 24))
                             .focused($isTextFieldFocused) // Bind focus state
                             .submitLabel(.done) // Change return key to "Done"
                             .onSubmit {
@@ -87,6 +89,7 @@ struct NameSetupView: View {
                         }
                     } label: {
                         Text("Lanjut")
+                            .font(.appFont(.rethinkRegular, size: 18))
                             .fontWeight(.semibold)
                             .foregroundColor(Color("AppOrange"))
                             .padding()
@@ -111,8 +114,8 @@ struct NameSetupView: View {
                         // Speech bubble only shows when mascot is animated
                         if animateMascot {
                             Text("Siapa nama kamu?")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.black) 
+                                .font(.appFont(.rethinkRegular, size: 16))
+                                .foregroundColor(.black)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
                                 .background(Color.white)

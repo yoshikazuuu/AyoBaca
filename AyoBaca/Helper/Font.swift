@@ -10,6 +10,7 @@ import SwiftUI
 enum FontType: String {
     case rethinkRegular = "RethinkSans-Regular"
     case rethinkBold = "RethinkSans-Regular_Bold"
+    case rethinkExtraBold = "RethinkSans-Regular_ExtraBold"
     case rethinkItalic = "RethinkSans-Italic"
     case dylexicRegular = "OpenDyslexic-Regular"
     case dylexicBold = "OpenDyslexic-Bold"

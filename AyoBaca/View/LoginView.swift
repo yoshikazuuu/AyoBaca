@@ -19,6 +19,8 @@ struct LoginView: View {
         ZStack {
             // Background with faded letters (complex, omitted for simplicity)
             Color("AppOrange").ignoresSafeArea()
+            
+            FloatingAlphabetBackground(count: 25, fontStyle: .dylexicRegular)
 
             VStack {
                 Spacer() // Push form down

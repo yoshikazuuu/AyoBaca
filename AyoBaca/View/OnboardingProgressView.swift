@@ -15,7 +15,10 @@ struct OnboardingProgressView: View {
         HStack(spacing: 8) {
             ForEach(0..<totalSteps, id: \.self) { step in
                 Circle()
-                    .fill(step < currentStep ? Color("AppOrange") : Color.white.opacity(0.6))
+                    .fill(
+                        step < currentStep ? Color.white : Color.white
+                            .opacity(0.3)
+                    )
                     .frame(width: 10, height: 10)
                     .scaleEffect(step == currentStep - 1 ? 1.2 : 1.0)
                     .animation(.spring(response: 0.3), value: currentStep)
