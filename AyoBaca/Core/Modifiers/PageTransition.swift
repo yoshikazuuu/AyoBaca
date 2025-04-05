@@ -5,8 +5,6 @@
 //  Created by Jerry Febriano on 04/04/25.
 //
 
-
-// ViewModifiers.swift
 import SwiftUI
 
 struct PageTransition: ViewModifier {
@@ -18,11 +16,5 @@ struct PageTransition: ViewModifier {
                     removal: .move(edge: .leading).combined(with: .opacity)
                 )
             )
-    }
-}
-
-extension View {
-    func pageTransition() -> some View {
-        self.modifier(PageTransition())
     }
 }

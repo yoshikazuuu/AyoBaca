@@ -1,16 +1,5 @@
 import SwiftUI
 
-// Define the possible screens in our app flow
-enum AppScreen {
-    case splash
-    case login
-    case welcome
-    case nameSetup
-    case ageSetup
-    case mainApp
-    // Add .mainApp later when the profile is complete or user is logged in
-}
-
 struct ContentView: View {
     @StateObject private var onboardingState = OnboardingState()
     @State private var currentScreen: AppScreen = .splash
