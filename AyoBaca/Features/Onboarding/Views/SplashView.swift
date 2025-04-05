@@ -1,8 +1,15 @@
+//
+//  SplashView.swift
+//  AyoBaca
+//
+//  Created by Jerry Febriano on 05/04/25.
+//
+
+
 import SwiftUI
 
 struct SplashView: View {
-    @Binding var currentScreen: AppScreen
-    @EnvironmentObject var onboardingState: OnboardingState
+    @EnvironmentObject var appStateManager: AppStateManager
     @State private var animateTitle = false
     @State private var animateMascot = false
     
@@ -50,12 +57,6 @@ struct SplashView: View {
                         .offset(y: animateMascot ? 0 : 50)
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                        currentScreen = .login
-                    }
-                }
             }
         }
         .onAppear {
@@ -68,12 +69,7 @@ struct SplashView: View {
                 animateMascot = true
             }
             
-            // Auto-advance after 2.5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation {
-                    currentScreen = .login
-                }
-            }
+            // Note: Navigation is now handled by AppStateManager in ContentView
         }
     }
 }

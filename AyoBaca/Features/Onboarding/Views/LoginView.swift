@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LoginView: View {
-    @Binding var currentScreen: AppScreen
+    @EnvironmentObject var appStateManager: AppStateManager
     @State private var email = ""
     @State private var password = ""
     @State private var rememberMe = false
@@ -169,7 +169,7 @@ struct LoginView: View {
                                         .spring(
                                             response: 0.6, dampingFraction: 0.7)
                                     ) {
-                                        currentScreen = .welcome
+                                        appStateManager.currentScreen = .welcome
                                     }
                                 }
                             } label: {
@@ -315,9 +315,5 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView(currentScreen: .constant(.login))
-}
-
-#Preview {
-    LoginView(currentScreen: .constant(.login))
+    LoginView()
 }

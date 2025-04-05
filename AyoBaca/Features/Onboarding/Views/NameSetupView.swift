@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NameSetupView: View {
-    @Binding var currentScreen: AppScreen
+    @EnvironmentObject var appStateManager: AppStateManager
     @EnvironmentObject var onboardingState: OnboardingState
     @State private var animateTitle = false
     @State private var animateTextField = false
@@ -26,7 +26,7 @@ struct NameSetupView: View {
                         Button {
                             isTextFieldFocused = false // Dismiss keyboard on back
                             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                                currentScreen = .welcome
+                                appStateManager.currentScreen = .welcome
                             }
                         } label: {
                             Image(systemName: "arrow.left")
@@ -84,7 +84,7 @@ struct NameSetupView: View {
                         isTextFieldFocused = false // Dismiss keyboard on button tap
                         if !onboardingState.childName.isEmpty {
                             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                                currentScreen = .ageSetup
+                                appStateManager.currentScreen = .ageSetup
                             }
                         }
                     } label: {
@@ -177,6 +177,6 @@ extension Double {
 
 // Preview (ensure OnboardingState is provided if needed)
 #Preview {
-    NameSetupView(currentScreen: .constant(.nameSetup))
+    NameSetupView()
         .environmentObject(OnboardingState()) // Add environment object for preview
 }

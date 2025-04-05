@@ -9,8 +9,9 @@
 import SwiftUI
 
 struct AgeSetupView: View {
-    @Binding var currentScreen: AppScreen
+    @EnvironmentObject var appStateManager: AppStateManager
     @EnvironmentObject var onboardingState: OnboardingState
+    @Environment(\.modelContext) private var modelContext
     @State private var animateTitle = false
     @State private var animateAgeSelector = false
     @State private var animateContinueButton = false
@@ -32,7 +33,7 @@ struct AgeSetupView: View {
                     HStack {
                         Button {
                             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                                currentScreen = .nameSetup
+                                appStateManager.currentScreen = .nameSetup
                             }
                         } label: {
                             Image(systemName: "arrow.left")
@@ -125,8 +126,13 @@ struct AgeSetupView: View {
                     // Continue button appears after selection
                     if animateContinueButton || onboardingState.childAge != nil {
                         Button {
+                            let newProfile = UserProfile(
+                                childName: onboardingState.childName,
+                                childAge: onboardingState.childAge ?? 7
+                            )
+                            
                             withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                                currentScreen = .mainApp
+                                appStateManager.completeOnboarding(with: newProfile, in: modelContext)
                             }
                         } label: {
                             Text("Mulai Petualangan!")
@@ -221,6 +227,6 @@ struct AgeSetupView: View {
 }
 
 #Preview {
-    AgeSetupView(currentScreen: .constant(.nameSetup))
+    AgeSetupView()
         .environmentObject(OnboardingState())
 }

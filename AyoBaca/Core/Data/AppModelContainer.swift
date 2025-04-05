@@ -10,11 +10,12 @@ import SwiftData
 
 struct AppModelContainer {
     static let shared: ModelContainer = {
-        // Define your schema with actual Model classes later
-        // Example: let schema = Schema([ChildProfile.self, ReadingProgress.self])
-        let schema = Schema([]) // Keep empty for now as in original code
+        // Define schema with our model classes
+        let schema = Schema([UserProfile.self, ReadingActivity.self])
         let modelConfiguration = ModelConfiguration(
-            schema: schema, isStoredInMemoryOnly: false)
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            allowsSave: true)
 
         do {
             return try ModelContainer(
@@ -23,4 +24,34 @@ struct AppModelContainer {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    // Fix: Use MainActor for preview container
+    @MainActor
+    static func previewContainer() -> ModelContainer {
+        let schema = Schema([UserProfile.self, ReadingActivity.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        
+        do {
+            let container = try ModelContainer(for: schema, configurations: [config])
+            
+            // Add sample data for previews
+            let sampleUser = UserProfile(childName: "Budi", childAge: 7)
+            container.mainContext.insert(sampleUser)
+            
+            let activity1 = ReadingActivity(bookTitle: "Petualangan Alfabet", durationMinutes: 15, profile: sampleUser)
+            let activity2 = ReadingActivity(bookTitle: "Si Kancil", durationMinutes: 10, profile: sampleUser)
+            container.mainContext.insert(activity1)
+            container.mainContext.insert(activity2)
+            
+            return container
+        } catch {
+            fatalError("Failed to create preview container: \(error)")
+        }
+    }
+    
+    // Store the container as a computed property that ensures main actor execution
+    @MainActor
+    static var preview: ModelContainer {
+        return previewContainer()
+    }
 }

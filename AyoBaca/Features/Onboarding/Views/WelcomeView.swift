@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WelcomeView: View {
-    @Binding var currentScreen: AppScreen
+    @EnvironmentObject var appStateManager: AppStateManager
     @EnvironmentObject var onboardingState: OnboardingState
     @State private var animateTitle = false
     @State private var animateText = false
@@ -43,7 +43,7 @@ struct WelcomeView: View {
                     
                     Button {
                         withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                            currentScreen = .nameSetup
+                            appStateManager.currentScreen = .nameSetup
                         }
                     } label: {
                         HStack(spacing: 4) {
@@ -100,6 +100,6 @@ struct WelcomeView: View {
 }
 
 #Preview {
-    WelcomeView(currentScreen: .constant(.welcome))
+    WelcomeView()
         .environmentObject(OnboardingState())
 }
