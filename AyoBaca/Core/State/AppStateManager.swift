@@ -17,6 +17,8 @@ class AppStateManager: ObservableObject {
     @Published var userProfile: UserProfile?
     @Published var isLoading: Bool = true
     
+    @Published var characterProgress = CharacterProgressManager()
+    
     // Use AppStorage to persist onboarding state
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     

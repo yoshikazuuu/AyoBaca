@@ -61,10 +61,54 @@ struct ContentView: View {
                 MainAppView()
                     .environmentObject(appStateManager)
                     .transition(.move(edge: .trailing))
+
+            case .profile:
+                ProfileView()
+                    .environmentObject(appStateManager)
+                    .transition(.move(edge: .trailing))
+
+            case .levelMap:
+                LevelMapView()
+                    .environmentObject(appStateManager)
+                    .transition(.move(edge: .trailing))  // Or your preferred transition
+
+            // --- Add Learning Activity Cases ---
+            case let .characterSelection(levelId):  // Use 'let' to extract associated value
+                CharacterSelectionView(levelId: levelId)
+                    .environmentObject(appStateManager)
+                    // Choose appropriate transitions
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)))
+
+            case let .spellingActivity(character):
+                SpellingView(character: character)
+                    .environmentObject(appStateManager)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)))
+
+            case let .writingActivity(character):
+                WritingView(character: character)
+                    .environmentObject(appStateManager)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)))
+
             }
         }
         .animation(
             .spring(response: 0.5, dampingFraction: 0.8),
             value: appStateManager.currentScreen)
     }
+}
+
+#Preview {
+    @MainActor in
+    MainAppView()
+        .environmentObject(AppStateManager())
+        .modelContainer(AppModelContainer.preview)
 }
