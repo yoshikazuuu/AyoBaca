@@ -72,8 +72,6 @@ We aim to provide an accessible, engaging, and effective learning companion for 
 
 ## 📸 Screenshots & Flow
 
-*(Referencing the provided composite image)*
-
 The application flow includes:
 
 1.  **Onboarding:** Splash, Login (Parent), Welcome, Name Setup, Age Setup, Introductory Screens.
