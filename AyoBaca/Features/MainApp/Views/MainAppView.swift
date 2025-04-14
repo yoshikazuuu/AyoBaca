@@ -11,9 +11,10 @@ struct MainAppView: View {
     // TipGroup for sequential display
     @State private var mainTips = TipGroup(.ordered) {
         ProfileTip()
-        StreakTip()
-        MascotTip()
+        MascotAndStreakTip()
         PracticeButtonTip()
+        MapButtonTip()
+        ProfileButtonTip()
     }
 
     var body: some View {
@@ -25,7 +26,6 @@ struct MainAppView: View {
             )
             .ignoresSafeArea()  // Ensure background ignores safe area
 
-            // --- Wrap main content in ScrollView to respect safe areas ---
             ScrollView {
                 VStack(spacing: 30) {
                     // Profile card
@@ -34,15 +34,15 @@ struct MainAppView: View {
                         .popoverTip(
                             mainTips.currentTip as? ProfileTip, arrowEdge: .top
                         )
-                        // Add some top padding *within* the scroll view
-                        // to push content down from the notch area slightly
-                        .padding(.top)  // <-- Added Padding
-
+                    // Add some top padding *within* the scroll view
+                    // to push content down from the notch area slightly
+                        .padding(.top)
+                    
                     // Mascot card
                     mascotStreakCard
                         .popoverTip(
-                            mainTips.currentTip as? MascotTip, arrowEdge: .top)
-
+                            mainTips.currentTip as? MascotAndStreakTip, arrowEdge: .top)
+                    
                     // Start Practice Button
                     Button {
                         print("Start practice tapped")
@@ -74,11 +74,15 @@ struct MainAppView: View {
                     .popoverTip(
                         mainTips.currentTip as? PracticeButtonTip,
                         arrowEdge: .top)
-
-                    // Bottom navigation (now part of the scrollable content)
+                    
+                    // Bottom navigation 
                     HStack {
                         Button {
-                            print("Location tapped")
+                            withAnimation(
+                                .spring(response: 0.6, dampingFraction: 0.7)
+                            ) {
+                                appStateManager.currentScreen = .levelMap
+                            }
                         } label: {
                             Image(systemName: "location.fill")
                                 .font(.system(size: 22, weight: .medium))
@@ -93,9 +97,13 @@ struct MainAppView: View {
                                 )
                         }
                         .accessibilityLabel("Lokasi")
-
+                        .popoverTip(
+                            mainTips.currentTip as? MapButtonTip,
+                            arrowEdge: .top
+                        )
+                        
                         Spacer()
-
+                        
                         Button {
                             // Navigate to profile view
                             withAnimation(
@@ -117,20 +125,23 @@ struct MainAppView: View {
                                 )
                         }
                         .accessibilityLabel("Profil")
+                        .popoverTip(
+                            mainTips.currentTip as? ProfileButtonTip,
+                            arrowEdge: .top
+                        )
                     }
                     .padding(.horizontal, 40)
                     // Add some bottom padding *within* the scroll view
                     // to ensure space above the home indicator area
-                    .padding(.bottom)  // <-- Added Padding
-
-                }  // End Main VStack
-            }  // --- End ScrollView ---
+                    .padding(.bottom)
+                    
+                }
+            }
 
         }
-        // No .onAppear needed specifically for starting the TipKit sequence
     }
 
-    // MARK: - Components (Unchanged)
+    // MARK: - Components
 
     var profileCard: some View {
         HStack(alignment: .center, spacing: 20) {
@@ -191,23 +202,25 @@ struct MainAppView: View {
                     .padding(20)
             }
 
-            Text("0 Streak")
-                .font(.appFont(.dylexicBold, size: 14))
-                .foregroundColor(.black)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.yellow.opacity(0.9))
-                        .shadow(
-                            color: Color.black.opacity(0.2), radius: 4, x: 0,
-                            y: 2)
-                )
-                .offset(y: -15)
-                // --- Attach popover tip for Streak ---
-                // Note: This tip is attached to the ZStack containing the mascot
-                // If you want it specifically on the badge, attach it there.
-                .popoverTip(mainTips.currentTip as? StreakTip, arrowEdge: .top)
+            HStack(spacing: 4) {  
+                Image(systemName: "flame.fill")  
+                    .foregroundColor(
+                        appStateManager.currentStreak > 0
+                            ? .orange : .gray.opacity(0.7)
+                    )  
+                Text("\(appStateManager.currentStreak) Hari Beruntun")  
+            }
+            .font(.appFont(.dylexicBold, size: 14))
+            .foregroundColor(.black)
+            .padding(.horizontal, 16)  
+            .padding(.vertical, 8)  
+            .background(
+                Capsule()  
+                    .fill(Color.yellow.opacity(0.9))
+                    .shadow(
+                        color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+            )
+            .offset(y: -18)
         }
         .frame(height: 400)
         .padding(.horizontal)
