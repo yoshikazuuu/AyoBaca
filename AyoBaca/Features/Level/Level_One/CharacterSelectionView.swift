@@ -59,6 +59,8 @@ struct CharacterSelectionView: View {
                         LazyVGrid(columns: columns, spacing: 15) {
                             ForEach(alphabet, id: \.self) { character in
                                 Button {
+                                    appStateManager.setCurrentLearningCharacter(character)
+
                                     // Navigate to Spelling Activity
                                     withAnimation {
                                         appStateManager.currentScreen =

@@ -34,29 +34,56 @@ struct MainAppView: View {
                         .popoverTip(
                             mainTips.currentTip as? ProfileTip, arrowEdge: .top
                         )
-                    // Add some top padding *within* the scroll view
-                    // to push content down from the notch area slightly
+                        // Add some top padding *within* the scroll view
+                        // to push content down from the notch area slightly
                         .padding(.top)
-                    
+
                     // Mascot card
                     mascotStreakCard
                         .popoverTip(
-                            mainTips.currentTip as? MascotAndStreakTip, arrowEdge: .top)
-                    
+                            mainTips.currentTip as? MascotAndStreakTip,
+                            arrowEdge: .top)
+
                     // Start Practice Button
                     Button {
-                        print("Start practice tapped")
-                        // Invalidate tip if needed
-                        if let tip = mainTips.currentTip as? PracticeButtonTip {
-                            tip.invalidate(reason: .actionPerformed)
+                        if let currentCharacter = appStateManager
+                            .currentLearningCharacter, !currentCharacter.isEmpty
+                        {
+                            // Resume current character - Go to Spelling activity as the start point
+                            print(
+                                "Resuming practice for character: \(currentCharacter)"
+                            )
+                            withAnimation(
+                                .spring(response: 0.6, dampingFraction: 0.7)
+                            ) {
+                                // Ensure the character exists before navigating
+                                if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(
+                                    currentCharacter)
+                                {
+                                    appStateManager.currentScreen =
+                                        .spellingActivity(
+                                            character: currentCharacter)
+                                } else {
+                                    // Fallback if character state is invalid
+                                    print(
+                                        "Invalid currentLearningCharacter '\(currentCharacter)', going to map."
+                                    )
+                                    appStateManager.currentScreen = .levelMap
+                                }
+                            }
+                        } else {
+                            // No specific character to resume, or finished 'Z', go to map
+                            let nextChar = appStateManager.characterProgress
+                                .getNextCharacterToLearn()
+                            print(
+                                "No current character set or finished. Next to learn: \(nextChar). Navigating to Level Map."
+                            )
+                            withAnimation(
+                                .spring(response: 0.6, dampingFraction: 0.7)
+                            ) {
+                                appStateManager.currentScreen = .levelMap
+                            }
                         }
-                        // --- Navigate to Level Map ---
-                        withAnimation(
-                            .spring(response: 0.6, dampingFraction: 0.7)
-                        ) {
-                            appStateManager.currentScreen = .levelMap
-                        }
-                        // --- End Navigation ---
                     } label: {
                         Text("Mulai Latihan")
                             .font(.appFont(.dylexicBold, size: 16))
@@ -74,8 +101,8 @@ struct MainAppView: View {
                     .popoverTip(
                         mainTips.currentTip as? PracticeButtonTip,
                         arrowEdge: .top)
-                    
-                    // Bottom navigation 
+
+                    // Bottom navigation
                     HStack {
                         Button {
                             withAnimation(
@@ -101,9 +128,9 @@ struct MainAppView: View {
                             mainTips.currentTip as? MapButtonTip,
                             arrowEdge: .top
                         )
-                        
+
                         Spacer()
-                        
+
                         Button {
                             // Navigate to profile view
                             withAnimation(
@@ -134,7 +161,7 @@ struct MainAppView: View {
                     // Add some bottom padding *within* the scroll view
                     // to ensure space above the home indicator area
                     .padding(.bottom)
-                    
+
                 }
             }
 
@@ -202,20 +229,20 @@ struct MainAppView: View {
                     .padding(20)
             }
 
-            HStack(spacing: 4) {  
-                Image(systemName: "flame.fill")  
+            HStack(spacing: 4) {
+                Image(systemName: "flame.fill")
                     .foregroundColor(
                         appStateManager.currentStreak > 0
                             ? .orange : .gray.opacity(0.7)
-                    )  
-                Text("\(appStateManager.currentStreak) Hari Beruntun")  
+                    )
+                Text("\(appStateManager.currentStreak) Hari Beruntun")
             }
             .font(.appFont(.dylexicBold, size: 14))
             .foregroundColor(.black)
-            .padding(.horizontal, 16)  
-            .padding(.vertical, 8)  
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
-                Capsule()  
+                Capsule()
                     .fill(Color.yellow.opacity(0.9))
                     .shadow(
                         color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
