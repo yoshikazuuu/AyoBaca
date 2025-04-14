@@ -1,3 +1,11 @@
+//
+//  OnboardingIntro2View.swift
+//  AyoBaca
+//
+//  Created by Jerry Febriano on 14/04/25.
+//
+
+
 // OnboardingIntro2View.swift
 import SwiftUI
 
@@ -12,26 +20,12 @@ struct OnboardingIntro2View: View {
         GeometryReader { geometry in
             ZStack {
                 // Background
-                Color(red: 0.6, green: 0.8, blue: 1.0) // Light blue background
+                Image("onboarding2")  // Make sure this asset exists!
+                    .resizable()
+                    .scaledToFill()
                     .ignoresSafeArea()
 
-                // Optional: Add cloud assets
-                 Image("cloud_asset_1") // Replace with your asset name
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width * 0.5)
-                    .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.15)
-                    .opacity(0.8)
-                 Image("cloud_asset_2") // Replace with your asset name
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width * 0.4)
-                    .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.7)
-                    .opacity(0.7)
-
                 VStack {
-                    Spacer() // Push content down
-
                     // Speech Bubble
                     ZStack {
                         // Bubble Shape
@@ -45,17 +39,14 @@ struct OnboardingIntro2View: View {
                                     )
                                     .foregroundColor(Color("AppOrange").opacity(0.6))
                             )
+                            .frame(width: 330, height: 400)
 
                         // Text Content
                         VStack(alignment: .center, spacing: 15) { // Increased spacing
-                             // Speaker Icon
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.title)
-                                .foregroundColor(.gray.opacity(0.8))
-                                .padding(.bottom, 5)
-
                             Text("Tapi sebelumnya, aku mau kenalin dulu tombol-tombol yang akan kamu pakai selama petualangan seru ini! Yuk, kita lihat bersama!")
-                                .font(.appFont(.rethinkRegular, size: 17)) // Use your app font
+                                .font(
+                                    .appFont(.dylexicRegular, size: 17)
+                                ) // Use your app font
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.black.opacity(0.8))
                                 .lineSpacing(5) // Adjust line spacing
@@ -66,7 +57,7 @@ struct OnboardingIntro2View: View {
                                 appStateManager.finalizeOnboarding()
                             } label: {
                                 Text("Klik untuk Mulai")
-                                    .font(.appFont(.rethinkBold, size: 16))
+                                    .font(.appFont(.dylexicRegular, size: 16))
                                     .foregroundColor(.white)
                                     .padding(.vertical, 12)
                                     .padding(.horizontal, 30)
@@ -79,30 +70,13 @@ struct OnboardingIntro2View: View {
                             .scaleEffect(animateButton ? 1 : 0.9)
 
                         }
-                        .padding(EdgeInsets(top: 25, leading: 20, bottom: 25, trailing: 20))
+                        .padding(EdgeInsets(top: 20, leading: 20, bottom: 25, trailing: 20))
 
                     }
                     .padding(.horizontal, 30)
                     .opacity(animateBubble ? 1 : 0)
                     .scaleEffect(animateBubble ? 1 : 0.8)
-
-
-                     // Progress Indicator
-                    OnboardingProgressView(currentStep: 5, totalSteps: 5) // Step 5 of 5
-                        .padding(.top, 30)
-
-                    Spacer() // Pushes mascot down
-
-                    // Mascot (different expression?)
-                    Image("mascot_wink") // Use a different mascot image if available, otherwise use the default
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: geometry.size.height * 0.4) // Adjust size
-                        .opacity(animateMascot ? 1 : 0)
-                        .offset(y: animateMascot ? 0 : 50)
-
                 }
-                 .padding(.bottom, -geometry.safeAreaInsets.bottom)
             }
         }
         .onAppear {

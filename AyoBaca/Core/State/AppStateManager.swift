@@ -215,6 +215,38 @@ class AppStateManager: ObservableObject {
         }
     }
 
+    @MainActor
+    func saveOnboardingProfile(
+        with profile: UserProfile, in context: ModelContext
+    ) {
+        // This function now ONLY saves the profile and sets the persistent flag.
+        // It DOES NOT navigate or set the @Published onboardingCompleted flag.
+        context.insert(profile)
+        do {
+            try context.save()
+            self.userProfile = profile
+            // Set the persistent flag indicating basic setup (name/age) is done
+            hasCompletedOnboarding = true
+            print("Profile saved, hasCompletedOnboarding flag set to true.")
+        } catch {
+            print("Failed to save profile: \(error)")
+            // Handle error (show alert, etc.)
+        }
+    }
+
+    @MainActor
+    func finalizeOnboarding() {
+        // Now set the state variable to true
+        self.onboardingCompleted = true
+        // Ensure learning character is set to 'A' to start
+        self.setCurrentLearningCharacter("A")
+        // Navigate to the main app
+        withAnimation {
+            self.currentScreen = .mainApp
+        }
+        print("Onboarding finalized. Navigating to MainApp.")
+    }
+
     private func saveStreakData() {
         UserDefaults.standard.set(currentStreak, forKey: streakKey)
         UserDefaults.standard.set(lastActivityDate, forKey: lastActivityDateKey)

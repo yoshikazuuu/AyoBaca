@@ -41,7 +41,7 @@ struct MapButtonTip: Tip {
 
 struct ProfileButtonTip: Tip {
     var title: Text { Text("Profil") }
-    var message: Text? { Text("Disini tombol yang bisa diakses Papa Mama untuk melihat progress [nama anak] belajar membaca!") }
+    var message: Text? { Text("Disini tombol yang bisa diakses Papa Mama untuk melihat progress anak belajar membaca!") }
     var image: Image? { Image(systemName: "person.fill") }
     var options: [Option] { MaxDisplayCount(1) }
 }

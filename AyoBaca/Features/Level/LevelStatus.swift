@@ -109,7 +109,6 @@ struct LevelMapView: View {
     
     private func updateLevelStatuses() {
         let progressManager = appStateManager.characterProgress
-        let unlockedSet = progressManager.unlockedCharacters
         // Determine the character the user should be learning next
         let nextCharToLearn = progressManager.getNextCharacterToLearn()  // e.g., "C" if A, B unlocked
 

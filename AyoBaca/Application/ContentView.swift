@@ -9,16 +9,20 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    // Global state manager
     @StateObject private var appStateManager = AppStateManager()
-    // For onboarding screens
     @StateObject private var onboardingState = OnboardingState()
-    // Access to SwiftData
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         ZStack {
-            Color("AppOrange").ignoresSafeArea()
+            // Use the light blue for onboarding intro screens, orange otherwise
+            let backgroundColor =
+                (appStateManager.currentScreen == .onboardingIntro1
+                    || appStateManager.currentScreen == .onboardingIntro2)
+                ? Color(red: 0.6, green: 0.8, blue: 1.0)
+                : Color("AppOrange")
+
+            backgroundColor.ignoresSafeArea()
 
             switch appStateManager.currentScreen {
             case .splash:
@@ -26,7 +30,6 @@ struct ContentView: View {
                     .environmentObject(appStateManager)
                     .transition(.opacity)
                     .onAppear {
-                        // Check onboarding status when splash appears
                         Task { @MainActor in
                             appStateManager.checkOnboardingStatus(
                                 in: modelContext)
@@ -57,6 +60,17 @@ struct ContentView: View {
                     .environmentObject(onboardingState)
                     .pageTransition()
 
+            case .onboardingIntro1:
+                OnboardingIntro1View()
+                    .environmentObject(appStateManager)
+                    .environmentObject(onboardingState)
+                    .pageTransition()
+
+            case .onboardingIntro2:
+                OnboardingIntro2View()
+                    .environmentObject(appStateManager)
+                    .pageTransition()
+
             case .mainApp:
                 MainAppView()
                     .environmentObject(appStateManager)
@@ -70,13 +84,11 @@ struct ContentView: View {
             case .levelMap:
                 LevelMapView()
                     .environmentObject(appStateManager)
-                    .transition(.move(edge: .trailing))  // Or your preferred transition
+                    .transition(.move(edge: .trailing))
 
-            // --- Add Learning Activity Cases ---
-            case let .characterSelection(levelId):  // Use 'let' to extract associated value
+            case let .characterSelection(levelId):
                 CharacterSelectionView(levelId: levelId)
                     .environmentObject(appStateManager)
-                    // Choose appropriate transitions
                     .transition(
                         .asymmetric(
                             insertion: .move(edge: .trailing),
@@ -97,7 +109,6 @@ struct ContentView: View {
                         .asymmetric(
                             insertion: .move(edge: .trailing),
                             removal: .move(edge: .leading)))
-
             }
         }
         .animation(

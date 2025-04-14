@@ -168,7 +168,7 @@ struct ProfileView: View {
             Text("Pengaturan Developer")
                 .font(.appFont(.rethinkBold, size: 18))
                 .padding(.leading, 8)
-                .foregroundColor(.red)
+                .foregroundColor(Color("AppOrange"))
             
             VStack(spacing: 0) {
                 settingRow(

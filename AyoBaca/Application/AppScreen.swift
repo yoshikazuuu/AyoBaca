@@ -12,12 +12,16 @@ enum AppScreen: Equatable {
     case welcome
     case nameSetup
     case ageSetup
+    case onboardingIntro1
+    case onboardingIntro2
+
+    // Main application screens
     case mainApp
     case levelMap
     case profile
 
     // New Learning Activity Screens
-    case characterSelection(levelId: Int) // Pass level ID if needed later
+    case characterSelection(levelId: Int)
     case spellingActivity(character: String)
     case writingActivity(character: String)
 }

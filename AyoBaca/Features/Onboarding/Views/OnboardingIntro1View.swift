@@ -1,3 +1,11 @@
+//
+//  OnboardingIntro1View.swift
+//  AyoBaca
+//
+//  Created by Jerry Febriano on 14/04/25.
+//
+
+
 // OnboardingIntro1View.swift
 import SwiftUI
 
@@ -10,29 +18,14 @@ struct OnboardingIntro1View: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
+            ZStack(alignment: .center) { // Ensure ZStack centers its content
                 // Background
-                Color(red: 0.6, green: 0.8, blue: 1.0) // Light blue background
+                Image("onboarding1")  // Make sure this asset exists!
+                    .resizable()
+                    .scaledToFill()
                     .ignoresSafeArea()
 
-                // Optional: Add cloud assets if you have them
-                Image("cloud_asset_1") // Replace with your asset name
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width * 0.5)
-                    .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.15)
-                    .opacity(0.8)
-                Image("cloud_asset_2") // Replace with your asset name
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: geometry.size.width * 0.4)
-                    .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.7)
-                    .opacity(0.7)
-
-
                 VStack {
-                    Spacer() // Push content down
-
                     // Speech Bubble
                     ZStack {
                         // Bubble Shape
@@ -44,30 +37,29 @@ struct OnboardingIntro1View: View {
                                     .strokeBorder(
                                         style: StrokeStyle(lineWidth: 3, dash: [10, 5])
                                     )
-                                    .foregroundColor(Color("AppOrange").opacity(0.6)) // Use your app color
+                                    .foregroundColor(Color("AppOrange").opacity(0.6))
                             )
+                            .frame(width: 330, height: 350)
 
                         // Text Content
                         VStack(alignment: .center, spacing: 10) {
-                             // Speaker Icon
-                            Image(systemName: "speaker.wave.2.fill")
-                                .font(.title)
-                                .foregroundColor(.gray.opacity(0.8))
-                                .padding(.bottom, 5)
-
                             Text("Halo, \(appStateManager.userProfile?.childName ?? "Anak")! Selamat datang di AYO BACA!")
-                                .font(.appFont(.rethinkBold, size: 18)) // Use your app font
+                                .font(
+                                    .appFont(.dylexicBold, size: 18)
+                                ) // Use your app font
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.black.opacity(0.8))
 
                             Text("Aku **ADO**, teman belajarmu! Yuk kita mulai petualangan seru belajar membaca, sampai kamu jadi Master Membaca!")
-                                .font(.appFont(.rethinkRegular, size: 16)) // Use your app font
+                                .font(
+                                    .appFont(.dylexicRegular, size: 16)
+                                ) // Use your app font
                                 .multilineTextAlignment(.center)
                                 .foregroundColor(.black.opacity(0.7))
                                 .lineSpacing(4)
 
                         }
-                        .padding(EdgeInsets(top: 25, leading: 20, bottom: 25, trailing: 20)) // Adjust padding
+                        .padding(EdgeInsets(top: 20, leading: 20, bottom: 25, trailing: 20)) // Adjust padding
 
                     }
                     .padding(.horizontal, 30)
@@ -78,25 +70,8 @@ struct OnboardingIntro1View: View {
                             appStateManager.currentScreen = .onboardingIntro2
                         }
                     }
-
-
-                    // Progress Indicator
-                    OnboardingProgressView(currentStep: 4, totalSteps: 5) // Step 4 of 5
-                        .padding(.top, 30)
-
-
-                    Spacer() // Pushes mascot down
-
-                    // Mascot
-                    Image("mascot") // Use your mascot asset
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: geometry.size.height * 0.4) // Adjust size as needed
-                        .opacity(animateMascot ? 1 : 0)
-                        .offset(y: animateMascot ? 0 : 50)
-
                 }
-                .padding(.bottom, -geometry.safeAreaInsets.bottom) // Allow mascot to go edge-to-edge at bottom
+                .frame(maxWidth: .infinity, maxHeight: .infinity) // Center the VStack
             }
         }
         .onAppear {
