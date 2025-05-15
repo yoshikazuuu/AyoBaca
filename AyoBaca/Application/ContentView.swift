@@ -35,12 +35,14 @@ struct ContentView: View {
                     viewModel: LoginViewModel(
                         appStateManager: appStateManager))
                     .pageTransition()
+                    .compositingGroup()
             case .welcome:
                 WelcomeView(
                     viewModel: WelcomeViewModel(
                         appStateManager: appStateManager))
                     .environmentObject(onboardingState)
                     .pageTransition()
+                    .compositingGroup()
             case .nameSetup:
                 NameSetupView(
                     viewModel: NameSetupViewModel(
@@ -48,6 +50,7 @@ struct ContentView: View {
                         onboardingState: onboardingState))
                     .environmentObject(onboardingState)
                     .pageTransition()
+                    .compositingGroup()
             case .ageSetup:
                 AgeSetupView(
                     viewModel: AgeSetupViewModel(
@@ -56,18 +59,21 @@ struct ContentView: View {
                         modelContext: modelContext))
                     .environmentObject(onboardingState)
                     .pageTransition()
+                    .compositingGroup()
             case .onboardingIntro1:
                 OnboardingIntro1View(
                     viewModel: OnboardingIntroViewModel(
                         appStateManager: appStateManager,
                         onboardingState: onboardingState))
                     .pageTransition()
+                    .compositingGroup()
             case .onboardingIntro2:
                 OnboardingIntro2View(
                     viewModel: OnboardingIntroViewModel(
                         appStateManager: appStateManager,
                         onboardingState: onboardingState))
                     .pageTransition()
+                    .compositingGroup()
             case .mainApp:
                 DashboardView(
                     viewModel: DashboardViewModel(
@@ -128,7 +134,7 @@ struct ContentView: View {
             }
         }
         .animation(
-            .spring(response: 0.5, dampingFraction: 0.8),
+            .easeInOut,
             value: appStateManager.currentScreen)
     }
 }

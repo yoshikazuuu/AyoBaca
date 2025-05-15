@@ -137,6 +137,9 @@ class CharacterSelectionViewModel: ObservableObject {
         // Set the tapped character as the one to start learning/practicing
         appStateManager.setCurrentLearningCharacter(characterInfo.character)
 
+        // Explicitly refresh statuses to ensure UI update before navigation state change
+        refreshCharacterStatuses()
+
         // Navigate to SpellingActivity for the selected character
         withAnimation(.easeInOut) {
             appStateManager.currentScreen = .spellingActivity(
