@@ -112,6 +112,15 @@ struct ContentView: View {
                     levelDefinition: levelDefinition
                 )
             )
+        case let .pronunciationHelper(character, levelDefinition):
+            PronunciationHelperView(
+                viewModel: PronunciationHelperViewModel(
+                    appStateManager: appStateManager,
+                    character: character,
+                    levelDefinition: levelDefinition
+                )
+            )
+            .environmentObject(appStateManager) // Pass AppStateManager if needed directly by the view
         }
     }
 }

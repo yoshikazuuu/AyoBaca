@@ -24,4 +24,5 @@ enum AppScreen: Equatable, Hashable {
     case characterSelection(levelDefinition: LevelDefinition)
     case spellingActivity(character: String, levelDefinition: LevelDefinition)
     case writingActivity(character: String, levelDefinition: LevelDefinition)
+    case pronunciationHelper(character: String, levelDefinition: LevelDefinition)
 }
