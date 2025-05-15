@@ -15,19 +15,19 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack(path: navigationPathBinding) {
-            Color.clear // Initial view before any navigation destination
+            Color.clear  // Initial view before any navigation destination
                 .navigationDestination(for: AppScreen.self) { screen in
                     destinationView(for: screen)
                         .navigationBarBackButtonHidden(true)
                 }
         }
     }
-    
+
     // Create a binding for the NavigationStack that respects navigationPath's private(set)
     private var navigationPathBinding: Binding<[AppScreen]> {
         Binding(
             get: { appStateManager.navigationPath },
-            set: { _ in } // No-op setter since we use appStateManager's navigation methods
+            set: { _ in }  // No-op setter since we use appStateManager's navigation methods
         )
     }
 
@@ -46,21 +46,24 @@ struct ContentView: View {
         case .welcome:
             WelcomeView(
                 viewModel: WelcomeViewModel(
-                    appStateManager: appStateManager))
-                .environmentObject(onboardingState)
+                    appStateManager: appStateManager)
+            )
+            .environmentObject(onboardingState)
         case .nameSetup:
             NameSetupView(
                 viewModel: NameSetupViewModel(
                     appStateManager: appStateManager,
-                    onboardingState: onboardingState))
-                .environmentObject(onboardingState)
+                    onboardingState: onboardingState)
+            )
+            .environmentObject(onboardingState)
         case .ageSetup:
             AgeSetupView(
                 viewModel: AgeSetupViewModel(
                     appStateManager: appStateManager,
                     onboardingState: onboardingState,
-                    modelContext: modelContext))
-                .environmentObject(onboardingState)
+                    modelContext: modelContext)
+            )
+            .environmentObject(onboardingState)
         case .onboardingIntro1:
             OnboardingIntro1View(
                 viewModel: OnboardingIntroViewModel(
@@ -86,7 +89,7 @@ struct ContentView: View {
             LevelMapView(
                 viewModel: LevelMapViewModel(
                     appStateManager: appStateManager))
-        
+
         case let .characterSelection(levelDefinition):
             CharacterSelectionView(
                 viewModel: CharacterSelectionViewModel(
@@ -94,7 +97,7 @@ struct ContentView: View {
                     levelDefinition: levelDefinition
                 )
             )
-        
+
         case let .spellingActivity(character, levelDefinition):
             SpellingView(
                 viewModel: SpellingViewModel(
@@ -121,7 +124,7 @@ struct ContentView: View {
                 )
             )
             .environmentObject(appStateManager)
-            
+
         case let .syllableActivity(levelDefinition):
             SyllableView(
                 viewModel: SyllableViewModel(
@@ -137,6 +140,16 @@ struct ContentView: View {
                     levelDefinition: levelDefinition
                 )
             )
+
+        case let .progressiveWordReadingActivity(levelDefinition):
+            ProgressiveWordReadingView(
+                viewModel: ProgressiveWordReadingViewModel(
+                    appStateManager: appStateManager,
+                    levelDefinition: levelDefinition
+                )
+            )
+
         }
+
     }
 }

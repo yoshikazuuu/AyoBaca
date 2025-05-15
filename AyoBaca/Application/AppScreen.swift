@@ -24,11 +24,16 @@ enum AppScreen: Equatable, Hashable {
     case characterSelection(levelDefinition: LevelDefinition)
     case spellingActivity(character: String, levelDefinition: LevelDefinition)
     case writingActivity(character: String, levelDefinition: LevelDefinition)
-    case pronunciationHelper(character: String, levelDefinition: LevelDefinition)
-    
+    case pronunciationHelper(
+        character: String, levelDefinition: LevelDefinition)
+
     // Level 2 Screens
     case syllableActivity(levelDefinition: LevelDefinition)
-    
+
     // Level 3 Screens
-    case wordFormationActivity(levelDefinition: LevelDefinition) // New
+    case wordFormationActivity(levelDefinition: LevelDefinition)
+
+    // Level 4 Screens
+    case progressiveWordReadingActivity(levelDefinition: LevelDefinition)  // New
+
 }

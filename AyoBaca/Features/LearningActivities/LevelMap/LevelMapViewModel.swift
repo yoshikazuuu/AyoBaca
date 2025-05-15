@@ -1,9 +1,4 @@
-//
-//  LevelMapViewModel.swift
-//  AyoBaca
-//
-//  Created by Jerry Febriano on 15/05/25.
-//
+// ./Features/LearningActivities/LevelMap/LevelMapViewModel.swift
 
 import SwiftUI
 import Combine
@@ -27,20 +22,20 @@ class LevelMapViewModel: ObservableObject {
         LevelDefinition(
             id: 2,
             position: CGPoint(x: 0.75, y: 0.48),
-            range: "CV"..."CV", // Placeholder for syllable structures
+            range: "CV"..."CV",
             name: "Dunia Suku Kata"
         ),
         LevelDefinition(
             id: 3,
             position: CGPoint(x: 0.30, y: 0.70),
-            range: "WORD"..."WORD", // Placeholder for word structures
-            name: "Gunung Kata" // Updated name
+            range: "WORD"..."WORD",
+            name: "Gunung Kata"
         ),
         LevelDefinition(
             id: 4,
             position: CGPoint(x: 0.80, y: 0.92),
-            range: " "..." ", // Placeholder range
-            name: "Sungai Cerita (Segera Hadir)"
+            range: "SENTENCE"..."SENTENCE", // Placeholder for sentence/reading structures
+            name: "Sungai Cerita" // Updated name
         ),
     ]
 
@@ -53,9 +48,9 @@ class LevelMapViewModel: ObservableObject {
         var updatedLevelsData: [LevelInfo] = []
         for definition in levelDefinitions {
             let status: LevelStatus
-            // Level 1 (Alphabet), Level 2 (Syllables), Level 3 (Words) are current/unlocked
-            if definition.id == 1 || definition.id == 2 || definition.id == 3 {
-                status = .current // Or .unlocked depending on progression logic
+            // All levels are currently accessible for testing
+            if definition.id == 1 || definition.id == 2 || definition.id == 3 || definition.id == 4 {
+                status = .current
             } else {
                 status = .locked
             }
@@ -71,9 +66,6 @@ class LevelMapViewModel: ObservableObject {
             )
         }
         self.levels = updatedLevelsData
-        print(
-            "Updated Level Statuses: \(self.levels.map { "ID: \($0.id) Status: \($0.status) Name: \($0.name)" })"
-        )
     }
 
     func handleLevelTap(_ level: LevelInfo) {
@@ -94,15 +86,12 @@ class LevelMapViewModel: ObservableObject {
             appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
         case 2:
             appStateManager.navigateTo(.syllableActivity(levelDefinition: tappedLevelDefinition))
-        case 3: // New case for Level 3
+        case 3:
             appStateManager.navigateTo(.wordFormationActivity(levelDefinition: tappedLevelDefinition))
+        case 4: // New case for Level 4
+            appStateManager.navigateTo(.progressiveWordReadingActivity(levelDefinition: tappedLevelDefinition))
         default:
-            // Fallback for other potential levels, or could be an error/locked message
-            print("Navigation for level ID \(level.id) not yet implemented or level is a placeholder.")
-            // Optionally, navigate to a generic placeholder or show an alert
-            // For now, let's assume only defined levels are tappable if not locked.
-            // If it's an "upcoming" level that's not locked, you might show a "Coming Soon" view.
-            // Example: appStateManager.navigateTo(.comingSoon(levelDefinition: tappedLevelDefinition))
+            print("Navigation for level ID \(level.id) not yet implemented.")
         }
     }
 
