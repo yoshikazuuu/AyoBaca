@@ -15,8 +15,9 @@ class DashboardViewModel: ObservableObject {
     @Published var childName: String = "Anak"
     @Published var childAge: Int = 0
     @Published var currentStreak: Int = 0
-    @Published var currentLearningCharacter: String? = nil
-    
+    // currentLearningCharacter is now primarily managed and observed from AppStateManager
+    // @Published var currentLearningCharacter: String? = nil
+
     @Published var mainTips = TipGroup(.ordered) {
         ProfileTip()
         MascotAndStreakTip()
@@ -24,63 +25,75 @@ class DashboardViewModel: ObservableObject {
         MapButtonTip()
         ProfileButtonTip()
     }
-    
-    private var appStateManager: AppStateManager // Already a dependency
+
+    private var appStateManager: AppStateManager
     private var cancellables = Set<AnyCancellable>()
-    
+
     init(appStateManager: AppStateManager, modelContext: ModelContext? = nil) {
         self.appStateManager = appStateManager
-        
+
         appStateManager.$userProfile
             .compactMap { $0 }
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] profile in
                 self?.childName = profile.childName
                 self?.childAge = profile.childAge
             }
             .store(in: &cancellables)
-        
+
         appStateManager.$currentStreak
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] streak in
                 self?.currentStreak = streak
             }
             .store(in: &cancellables)
-        
-        appStateManager.$currentLearningCharacter
-            .sink { [weak self] character in
-                self?.currentLearningCharacter = character
-            }
-            .store(in: &cancellables)
-        
+
+        // No need to directly observe currentLearningCharacter here for a @Published var,
+        // as AppStateManager is the source of truth and startPracticeTapped will use it.
+
+        // Initial values
         self.childName = appStateManager.userProfile?.childName ?? "Anak"
         self.childAge = appStateManager.userProfile?.childAge ?? 0
         self.currentStreak = appStateManager.currentStreak
-        self.currentLearningCharacter = appStateManager.currentLearningCharacter
     }
-    
+
     func startPracticeTapped() {
-        if let character = currentLearningCharacter, !character.isEmpty, character != "Z" {
-            print("Resuming practice for character: \(character)")
-            if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(character) {
-                // MODIFIED: Pass the mainAlphabetLevelDefinition from AppStateManager
-                appStateManager.currentScreen = .spellingActivity(
-                    character: character,
-                    levelDefinition: appStateManager.mainAlphabetLevelDefinition // Use the definition from AppStateManager
-                )
-            } else {
-                print("Invalid currentLearningCharacter '\(character)', going to map.")
-                appStateManager.currentScreen = .levelMap
-            }
+        // Determine the character to practice using AppStateManager's state
+        let charToPractice =
+            appStateManager.currentLearningCharacter
+            ?? appStateManager.characterProgress.getNextCharacterToLearn()
+        
+        let levelDef = appStateManager.mainAlphabetLevelDefinition
+
+        // Ensure the character is valid and within the A-Z level's range.
+        // The mainAlphabetLevelDefinition.range should be "A"..."Z".
+        if !charToPractice.isEmpty && levelDef.range.contains(charToPractice) {
+            print(
+                "Dashboard: Starting/Resuming practice for character: \(charToPractice) from level: \(levelDef.name)"
+            )
+            // Always go to SpellingActivity first as per the new flow
+            appStateManager.currentScreen = .spellingActivity(
+                character: charToPractice,
+                levelDefinition: levelDef
+            )
         } else {
-            let nextCharToLearn = appStateManager.characterProgress.getNextCharacterToLearn()
-            print("No current character set or Z completed. Next to learn: \(nextCharToLearn). Navigating to Level Map.")
+            // This case handles scenarios like:
+            // 1. charToPractice is "Z" and already fully completed (getNextCharacterToLearn might still return "Z").
+            // 2. charToPractice is somehow outside the A-Z range (shouldn't happen with proper logic).
+            // 3. Initial state where currentLearningCharacter is nil and getNextCharacterToLearn might point to something
+            //    that indicates the A-Z level is done or should be selected via map.
+            // Defaulting to Level Map is a safe choice here.
+            print(
+                "Dashboard: Character '\(charToPractice)' not suitable for direct practice start (e.g., 'Z' completed, invalid, or end of A-Z sequence). Navigating to Level Map."
+            )
             appStateManager.currentScreen = .levelMap
         }
     }
-    
+
     func mapButtonTapped() {
         appStateManager.currentScreen = .levelMap
     }
-    
+
     func profileButtonTapped() {
         appStateManager.currentScreen = .profile
     }

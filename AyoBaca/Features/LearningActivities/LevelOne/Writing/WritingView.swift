@@ -16,64 +16,52 @@ struct WritingView: View {
                 Color(red: 0.8, green: 0.9, blue: 1.0).ignoresSafeArea()
 
                 VStack(spacing: 15) {
-                    instructionText.padding(.top, geometry.safeAreaInsets.top + 20)
-                    
-                    if viewModel.debugMode {
-                        debugStatusText
-                    }
+                    instructionText.padding(
+                        .top, geometry.safeAreaInsets.top + 20)
 
-                    drawingArea(geometry: geometry) // Pass geometry for potential aspect ratio use
-                        .padding(.horizontal, 20) // Adjusted padding
-                        .aspectRatio(1, contentMode: .fit)
-
+                    drawingArea(geometry: geometry)
+                        .padding(.horizontal, 20)
+                        .aspectRatio(1, contentMode: .fit) // Maintain square aspect ratio
 
                     controlsHStack
                         .padding(.top, 5)
 
-                    if viewModel.debugMode {
-                        debugControlsHStack.padding(.top, 5)
-                    }
-                    
                     Spacer()
                     mascotImage(geometry: geometry)
-                        .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 0 : 20) // Adjust padding if no home indicator
+                        .padding(
+                            .bottom,
+                            geometry.safeAreaInsets.bottom > 0 ? 0 : 20)
                 }
                 .frame(width: geometry.size.width)
-                .alert("Validasi Huruf", isPresented: $viewModel.showValidationAlert) {
+                .alert(
+                    "Validasi Huruf", isPresented: $viewModel.showValidationAlert
+                ) {
                     Button("Ok", role: .cancel) {}
                 } message: {
                     Text(viewModel.validationMessage)
                 }
 
-                backButton(geometry: geometry)
+                backButton
 
                 if viewModel.showUnlockCelebration {
                     unlockCelebrationOverlay
                 }
-                
-                if viewModel.showDebugImage, let uiImage = viewModel.debugUIImage {
-                    debugImageOverlay(uiImage: uiImage)
-                }
             }
+        }
+        .onAppear {
+            // Reset drawing if view appears, e.g. navigating back then forward
+            // viewModel.clearDrawing() // Or handle this based on specific needs
         }
     }
 
     private var instructionText: some View {
-        Text(viewModel.instructionText) // Use dynamic instruction text
+        Text(viewModel.instructionText)
             .font(.appFont(.rethinkBold, size: 22))
             .foregroundColor(.black.opacity(0.7))
             .multilineTextAlignment(.center)
             .padding(.horizontal)
     }
-    
-    private var debugStatusText: some View {
-        Text("Target: \(viewModel.targetCharacter) | Paths: \(viewModel.drawingPaths.count)")
-            .font(.caption)
-            .foregroundColor(.black.opacity(0.6))
-            .padding(.horizontal)
-    }
 
-    // Pass geometry to drawingArea if it needs to make decisions based on available space
     private func drawingArea(geometry: GeometryProxy) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
@@ -87,19 +75,21 @@ struct WritingView: View {
                         )
                 )
 
+            // Ghost character
+            Text(viewModel.targetCharacter)
+                .font(.appFont(
+                    .dylexicRegular, size: geometry.size.width * 0.6)) // Responsive ghost size
+                .foregroundColor(.gray.opacity(0.10)) // Slightly less visible
+                .allowsHitTesting(false)
+
             DrawingCanvas(
                 paths: $viewModel.drawingPaths,
                 currentPath: $viewModel.currentDrawingPath,
-                canvasColor: .clear, // Canvas itself is clear
-                drawingColor: viewModel.currentDrawingPath.color, // Use color from current path
-                lineWidth: viewModel.currentDrawingPath.lineWidth  // Use lineWidth from current path
+                canvasColor: .clear,
+                drawingColor: viewModel.currentDrawingPath.color,
+                lineWidth: viewModel.currentDrawingPath.lineWidth
             )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-
-            Text(viewModel.targetCharacter)
-                .font(.appFont(.dylexicRegular, size: geometry.size.width * 0.5)) // Responsive ghost size
-                .foregroundColor(.gray.opacity(0.12))
-                .allowsHitTesting(false)
+            .clipShape(RoundedRectangle(cornerRadius: 20)) // Clip drawing to the bounds
         }
     }
 
@@ -108,139 +98,98 @@ struct WritingView: View {
             Button { viewModel.clearDrawing() } label: {
                 Label("Ulangi", systemImage: "trash")
                     .font(.appFont(.rethinkBold, size: 16))
-                    .foregroundColor(.red)
+                    .foregroundColor(Color.red.opacity(0.8))
                     .padding(.horizontal, 20).padding(.vertical, 10)
-                    .background(Capsule().fill(Color.white).shadow(radius: 3))
+                    .background(Capsule().fill(Color.white).shadow(
+                        color: .black.opacity(0.1), radius: 3, x: 0, y: 1))
             }
             Button { viewModel.submitDrawing() } label: {
                 Label("Selesai", systemImage: "checkmark.circle.fill")
                     .font(.appFont(.rethinkBold, size: 16))
-                    .foregroundColor(.green)
+                    .foregroundColor(Color.green.opacity(0.9))
                     .padding(.horizontal, 20).padding(.vertical, 10)
-                    .background(Capsule().fill(Color.white).shadow(radius: 3))
+                    .background(Capsule().fill(Color.white).shadow(
+                        color: .black.opacity(0.1), radius: 3, x: 0, y: 1))
             }
         }
-    }
-    
-    private var debugControlsHStack: some View {
-        HStack(spacing: 15) {
-            Button("Debug Img") {
-                // Pass a reasonable size for the debug image
-                viewModel.generateProcessedImageFromPaths(targetSize: CGSize(width:280, height:280))
-            }
-            .font(.appFont(.rethinkRegular, size: 14))
-            .padding(8).background(Color.blue.opacity(0.7)).foregroundColor(.white).cornerRadius(8)
-
-            Button("Force OK") {
-                viewModel.forceSuccessAndProceed()
-            }
-            .font(.appFont(.rethinkRegular, size: 14))
-            .padding(8).background(Color.purple.opacity(0.7)).foregroundColor(.white).cornerRadius(8)
-            
-            Toggle("Debug Mode", isOn: $viewModel.debugMode)
-                .font(.appFont(.rethinkRegular, size: 12))
-                .foregroundColor(.white) // Adjust color for visibility
-        }
-        .padding(.horizontal)
     }
 
     private func mascotImage(geometry: GeometryProxy) -> some View {
         Image("mascot")
             .resizable()
             .scaledToFit()
-            .frame(height: geometry.size.height * 0.22) // Slightly adjusted
+            .frame(height: geometry.size.height * 0.20) // Slightly smaller
             .allowsHitTesting(false)
     }
-    
-    private func backButton(geometry: GeometryProxy) -> some View {
+
+    private var backButton: some View {
         VStack {
             HStack {
-                Button { viewModel.navigateBackToCharacterSelection() } label: {
+                Button {
+                    viewModel.navigateBackToCharacterSelection()
+                } label: {
                     Image(systemName: "arrow.left")
                         .font(.title2.weight(.semibold))
                         .padding(12)
                         .background(Color.white.opacity(0.7))
                         .foregroundColor(Color("AppOrange"))
-                        .clipShape(Circle()).shadow(radius: 3)
+                        .clipShape(Circle())
+                        .shadow(radius: 3)
                 }
-                // Use safeAreaInsets for padding if available, otherwise a fixed value
-                .padding(.top, geometry.safeAreaInsets.top > 0 ? geometry.safeAreaInsets.top : 10)
-                .padding(.leading)
+                .padding([.top, .leading]) // Add top padding
                 Spacer()
             }
             Spacer()
         }
     }
 
+
     private var unlockCelebrationOverlay: some View {
         ZStack {
-            Color.black.opacity(0.75).ignoresSafeArea()
+            Color.black.opacity(0.8).ignoresSafeArea() // Slightly more opaque
                 .onTapGesture {
-                    // viewModel.showUnlockCelebration = false // Simple dismiss
-                    viewModel.celebrationDismissed() // Dismiss and navigate
+                    viewModel.celebrationDismissed()
                 }
+            
+            ConfettiView().allowsHitTesting(false)
+                .frame(height: 350) // Larger confetti area
+                .offset(y: -60)
 
             VStack(spacing: 20) {
-                Text("Hebat!") // Changed title
-                    .font(.appFont(.dylexicBold, size: 32))
-                    .foregroundColor(.white)
-                
-                Text("Kamu berhasil menulis huruf")
-                    .font(.appFont(.rethinkRegular, size: 20))
+                Text("Hebat!")
+                    .font(.appFont(.dylexicBold, size: 36)) // Larger
                     .foregroundColor(.white)
 
-                Text(viewModel.unlockedCharacterDisplay) // Character just completed
-                    .font(.appFont(.dylexicBold, size: 120))
+                Text("Kamu berhasil menulis huruf")
+                    .font(.appFont(.rethinkRegular, size: 20))
+                    .foregroundColor(.white.opacity(0.9))
+
+                Text(viewModel.unlockedCharacterDisplay)
+                    .font(.appFont(.dylexicBold, size: 130)) // Larger
                     .foregroundColor(Color("AppYellow"))
                     .padding()
                     .background(
-                        Circle().fill(Color.white.opacity(0.2))
-                            .frame(width: 180, height: 180) // Ensure circle is large enough
+                        Circle().fill(Color.white.opacity(0.15))
+                            .frame(width: 200, height: 200) // Larger circle
                     )
-                
-                Text("Ayo lanjut ke huruf berikutnya!")
-                     .font(.appFont(.rethinkRegular, size: 18))
-                     .foregroundColor(.white)
-                     .padding(.top, 10)
+                    .shadow(color: Color("AppYellow").opacity(0.5), radius: 10)
 
-                // Confetti should be part of this overlay if it's specific to this celebration
-                ConfettiView().allowsHitTesting(false)
-                    .frame(height: 300) // Adjust size as needed
-                    .offset(y: -50) // Adjust position to spread out more
+                Text("Ayo lanjut ke huruf berikutnya!")
+                    .font(.appFont(.rethinkBold, size: 18)) // Bolder
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
+
             }
             .padding()
+            .scaleEffect(viewModel.showUnlockCelebration ? 1 : 0.8) // Scale effect
+            .opacity(viewModel.showUnlockCelebration ? 1 : 0)
             .onAppear {
-                // Auto-dismiss after a few seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                    if viewModel.showUnlockCelebration { // Check if still showing
-                        viewModel.celebrationDismissed()
-                    }
+                // Auto-dismiss handled by ViewModel to ensure state consistency
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                    viewModel.celebrationDismissed()
                 }
             }
         }
-        .transition(.opacity.combined(with: .scale))
-    }
-    
-    private func debugImageOverlay(uiImage: UIImage) -> some View {
-        ZStack {
-            Color.black.opacity(0.85).ignoresSafeArea()
-                .onTapGesture { viewModel.showDebugImage = false }
-
-            VStack(spacing: 15) {
-                Text("Processed Image for Analysis")
-                    .font(.headline).foregroundColor(.white)
-                
-                Image(uiImage: uiImage)
-                    .resizable().scaledToFit()
-                    .background(Color.white)
-                    .border(Color.gray, width: 1)
-                    .frame(maxWidth: 300, maxHeight: 300)
-
-                Button("Close") { viewModel.showDebugImage = false }
-                    .padding(.horizontal, 20).padding(.vertical, 10)
-                    .background(Color.blue).foregroundColor(.white).cornerRadius(8)
-            }
-            .padding()
-        }
+        .animation(.spring(response: 0.5, dampingFraction: 0.7), value: viewModel.showUnlockCelebration)
     }
 }

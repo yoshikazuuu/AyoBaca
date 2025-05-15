@@ -6,8 +6,6 @@
 import SwiftUI
 import Combine
 
-// Helper structs CharacterInfo, CharacterStatus remain the same...
-// ... (previous code for CharacterInfo and CharacterStatus) ...
 struct CharacterInfo: Identifiable, Equatable {
     let id = UUID()
     let character: String
@@ -17,17 +15,16 @@ struct CharacterInfo: Identifiable, Equatable {
 enum CharacterStatus: Equatable {
     case locked
     case unlocked
-    case current
+    case current 
 }
-
 
 @MainActor
 class CharacterSelectionViewModel: ObservableObject {
     @Published var availableCharacters: [CharacterInfo] = []
     @Published var levelName: String
-    @Published var currentLearningCharacterDisplay: String
+    @Published var currentLearningCharacterDisplay: String // For UI emphasis
 
-    private let levelDefinition: LevelDefinition // This is the key
+    private let levelDefinition: LevelDefinition
     private var appStateManager: AppStateManager
     private var progressManager: CharacterProgressManager {
         appStateManager.characterProgress
@@ -38,55 +35,84 @@ class CharacterSelectionViewModel: ObservableObject {
         self.appStateManager = appStateManager
         self.levelDefinition = levelDefinition
         self.levelName = levelDefinition.name
-        self.currentLearningCharacterDisplay = appStateManager.currentLearningCharacter ?? "A"
-        loadCharacterData()
+        self.currentLearningCharacterDisplay =
+            appStateManager.currentLearningCharacter
+            ?? appStateManager.characterProgress.getNextCharacterToLearn() // Ensure it has a value
 
+        loadCharacterData() // Initial load
+
+        // Subscribe to changes in the AppStateManager's currentLearningCharacter
         appStateManager.$currentLearningCharacter
+            .receive(on: DispatchQueue.main) // Ensure UI updates on main thread
             .sink { [weak self] newLearningCharOptional in
-                self?.currentLearningCharacterDisplay = newLearningCharOptional ?? "A"
-                self?.refreshCharacterStatuses()
+                guard let self = self else { return }
+                let newChar =
+                    newLearningCharOptional
+                    ?? self.appStateManager.characterProgress
+                        .getNextCharacterToLearn()
+                if self.currentLearningCharacterDisplay != newChar {
+                    self.currentLearningCharacterDisplay = newChar
+                    self.refreshCharacterStatuses() // Refresh statuses when it changes
+                }
             }
             .store(in: &cancellables)
+
+        // Also subscribe to changes in unlocked characters if they can change externally
+        // For now, assuming changes are driven by currentLearningCharacter for status updates.
     }
 
     func onAppear() {
-        self.currentLearningCharacterDisplay = appStateManager.currentLearningCharacter ?? "A"
-        loadCharacterData()
+        // Refresh data when the view appears, in case progress changed elsewhere
+        self.currentLearningCharacterDisplay =
+            appStateManager.currentLearningCharacter
+            ?? appStateManager.characterProgress.getNextCharacterToLearn()
+        loadCharacterData() // This will internally call refreshCharacterStatuses
     }
 
     private func loadCharacterData() {
         let characterRange = levelDefinition.range
         var chars: [CharacterInfo] = []
 
-        if characterRange.lowerBound.count == 1 && characterRange.upperBound.count == 1 &&
-           characterRange.lowerBound <= characterRange.upperBound &&
-           characterRange.lowerBound != " " {
+        // Ensure the range is valid for character iteration (e.g., "A"..."Z")
+        if characterRange.lowerBound.count == 1
+            && characterRange.upperBound.count == 1
+            && characterRange.lowerBound <= characterRange.upperBound
+            && characterRange.lowerBound.trimmingCharacters(in: .whitespaces)
+                != ""
+        {
             let lower = Character(characterRange.lowerBound)
             let upper = Character(characterRange.upperBound)
-            if let lowerAscii = lower.asciiValue, let upperAscii = upper.asciiValue {
+            if let lowerAscii = lower.asciiValue,
+                let upperAscii = upper.asciiValue
+            {
                 for i in lowerAscii...upperAscii {
                     let charValue = UnicodeScalar(i)
                     let charString = String(charValue).uppercased()
-                    let currentActualLearningChar = appStateManager.currentLearningCharacter ?? "A"
-                    let isUnlocked = progressManager.isCharacterUnlocked(charString)
-                    let isCurrentLearning = (currentActualLearningChar == charString)
-                    let status: CharacterStatus = isCurrentLearning ? .current : (isUnlocked ? .unlocked : .locked)
-                    chars.append(CharacterInfo(character: charString, status: status))
+                    // Status determined by refreshCharacterStatuses, set a default here
+                    chars.append(
+                        CharacterInfo(character: charString, status: .locked))
                 }
             }
         } else {
-             print("Warning: CharacterSelection for placeholder or invalid level range \(levelDefinition.name)")
+            print(
+                "Warning: CharacterSelection for placeholder or invalid level range \(levelDefinition.name) with range '\(characterRange)'"
+            )
         }
         self.availableCharacters = chars
+        refreshCharacterStatuses() // Apply correct statuses after loading
     }
-    
+
     private func refreshCharacterStatuses() {
-        let currentActualLearningChar = appStateManager.currentLearningCharacter ?? "A"
+        let actualCurrentLearningChar =
+            appStateManager.currentLearningCharacter
+            ?? appStateManager.characterProgress.getNextCharacterToLearn()
+
         for i in availableCharacters.indices {
             let charString = availableCharacters[i].character
             let isUnlocked = progressManager.isCharacterUnlocked(charString)
-            let isCurrentLearning = (currentActualLearningChar == charString)
-            if isCurrentLearning {
+            let isCurrent = (actualCurrentLearningChar == charString)
+
+            if isCurrent {
                 availableCharacters[i].status = .current
             } else if isUnlocked {
                 availableCharacters[i].status = .unlocked
@@ -94,39 +120,28 @@ class CharacterSelectionViewModel: ObservableObject {
                 availableCharacters[i].status = .locked
             }
         }
+        // Update the display variable if it's not directly bound to a characterInfo status
+        self.currentLearningCharacterDisplay = actualCurrentLearningChar
     }
 
     func characterTapped(_ characterInfo: CharacterInfo) {
         guard characterInfo.status != .locked else {
             print("Character \(characterInfo.character) is locked.")
+            // Optionally, provide user feedback (e.g., haptic, small message)
             return
         }
-        print("Character \(characterInfo.character) tapped. Status: \(characterInfo.status)")
+        print(
+            "Character \(characterInfo.character) tapped. Status: \(characterInfo.status)"
+        )
+
+        // Set the tapped character as the one to start learning/practicing
         appStateManager.setCurrentLearningCharacter(characterInfo.character)
 
-        // Example: Offer choices or go to a default activity.
-        // For now, let's assume we might want to go to Writing or Spelling.
-        // We'll make navigateToWritingActivity public for this example.
-        navigateToWritingActivity(for: characterInfo.character)
-    }
-
-    func navigateToSpellingActivity(for character: String) {
+        // Navigate to SpellingActivity for the selected character
         withAnimation(.easeInOut) {
-            // If SpellingActivity also needs levelDefinition, update AppScreen and pass it here.
-            appStateManager.currentScreen = 
-                .spellingActivity(
-                    character: character,
-                    levelDefinition: levelDefinition
-                )
-        }
-    }
-    
-    // MODIFIED: Now passes the levelDefinition
-    func navigateToWritingActivity(for character: String) {
-        withAnimation(.easeInOut) {
-            appStateManager.currentScreen = .writingActivity(
-                character: character,
-                levelDefinition: self.levelDefinition // Pass the current levelDefinition
+            appStateManager.currentScreen = .spellingActivity(
+                character: characterInfo.character,
+                levelDefinition: self.levelDefinition
             )
         }
     }
