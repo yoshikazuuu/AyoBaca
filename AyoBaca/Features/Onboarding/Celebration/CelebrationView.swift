@@ -2,60 +2,54 @@
 //  CelebrationView.swift
 //  AyoBaca
 //
-//  Created by Jerry Febriano on 04/04/25.
+//  Created by Jerry Febriano on 15/05/25.
 //
+
 
 import SwiftUI
 
 struct CelebrationView: View {
-    @Binding var currentScreen: AppScreen
-    @EnvironmentObject var onboardingState: OnboardingState
-    
+    // The binding to currentScreen is removed; ViewModel handles navigation.
+    @StateObject var viewModel: CelebrationViewModel
+
     var body: some View {
         ZStack {
             Color("AppOrange").ignoresSafeArea()
-            
+
             VStack(spacing: 20) {
                 Text("Selamat Datang,")
-                    .font(.largeTitle)
+                    .font(.largeTitle) // Consider .appFont if available
                     .foregroundColor(.white)
-                
-                Text(onboardingState.childName)
+
+                Text(viewModel.childNameDisplay)
                     .font(.appFont(.dylexicBold, size: 40))
                     .foregroundColor(.white)
-                
-                LottieView(name: "celebration")
-                    .frame(height: 200)
-                
+
+                LottieView(name: "celebration") // Ensure LottieView is correctly implemented
+                    .frame(height: 250) // Adjusted size
+
                 Text("Petualangan Membaca Dimulai!")
-                    .font(.title2)
+                    .font(.title2) // Consider .appFont
                     .foregroundColor(.white)
                     .padding(.top, 20)
-                
+
                 Button {
-                    withAnimation {
-                        currentScreen = .mainApp
-                    }
+                    viewModel.navigateToMainApp()
                 } label: {
                     Text("Mulai Sekarang")
                         .fontWeight(.semibold)
                         .foregroundColor(Color("AppOrange"))
                         .padding()
-                        .frame(width: 200)
+                        .frame(minWidth: 200) // Ensure good tap area
                         .background(Color.white)
                         .cornerRadius(25)
                 }
                 .padding(.top, 30)
             }
-            .onAppear {
-                // Auto advance after 3 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    withAnimation {
-                        currentScreen = .mainApp
-                    }
-                }
-            }
+            .padding() // Add some padding to the VStack
+        }
+        .onAppear {
+            viewModel.viewDidAppear()
         }
     }
 }
-

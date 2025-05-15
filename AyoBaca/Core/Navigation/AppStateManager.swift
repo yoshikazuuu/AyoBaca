@@ -7,10 +7,9 @@
 
 import Combine
 import SwiftData
-import SwiftUI
+import SwiftUI // Added for UIApplication if still needed, but we'll remove the AppDelegate part
 
 class AppStateManager: ObservableObject {
-    // Published properties for reactive UI updates
     @Published var currentScreen: AppScreen = .splash
     @Published var onboardingCompleted: Bool = false
     @Published var userProfile: UserProfile?
@@ -18,57 +17,47 @@ class AppStateManager: ObservableObject {
 
     @Published var characterProgress = CharacterProgressManager()
 
-    // Use AppStorage to persist onboarding state
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding =
         false
 
-    // Streak Data
     @Published var currentStreak: Int = 0
     private var lastActivityDate: Date?
     private let streakKey = "userStreakCount"
     private let lastActivityDateKey = "lastActivityDate"
 
-    // Continuous Learning Character
     @Published var currentLearningCharacter: String?
     private let currentLearningCharacterKey = "currentLearningCharacter"
 
-    // Keep track of any subscriptions
     private var cancellables = Set<AnyCancellable>()
 
+    let mainAlphabetLevelDefinition = LevelDefinition(
+        id: 1,
+        position: CGPoint(x: 0.2, y: 0.75),
+        range: "A"..."Z",
+        name: "Pulau Alfabet (A-Z)"
+    )
+
     init() {
-        // Load onboarding state from AppStorage
         self.onboardingCompleted = hasCompletedOnboarding
         self.currentStreak = UserDefaults.standard.integer(forKey: streakKey)
         self.lastActivityDate =
-            UserDefaults.standard.object(
-                forKey: lastActivityDateKey) as? Date
+            UserDefaults.standard.object(forKey: lastActivityDateKey) as? Date
+        self.currentLearningCharacter =
+            UserDefaults.standard.string(forKey: currentLearningCharacterKey)
 
-        // --- Load current learning character ---
-        self.currentLearningCharacter = UserDefaults.standard.string(
-            forKey: currentLearningCharacterKey)
-        // If onboarding isn't complete, ensure no character is set
         if !hasCompletedOnboarding {
             self.currentLearningCharacter = nil
-            UserDefaults.standard.removeObject(
-                forKey: currentLearningCharacterKey)
-        } else if self.currentLearningCharacter == nil && hasCompletedOnboarding
-        {
-            // If onboarding is done but no character is set, default to the next one after 'A'
-            // or 'A' itself if nothing is unlocked yet.
+            UserDefaults.standard.removeObject(forKey: currentLearningCharacterKey)
+        } else if self.currentLearningCharacter == nil && hasCompletedOnboarding {
             let nextChar = characterProgress.getNextCharacterToLearn()
             self.currentLearningCharacter = nextChar
-            // Don't save this default here, let activities save it explicitly.
             print("Initial currentLearningCharacter set to: \(nextChar)")
         }
-        // --- End Loading ---
-
-        // Initial check if streak should be reset (e.g., if last activity was before yesterday)
         checkAndResetStreakIfNeeded()
     }
 
     @MainActor
     func setCurrentLearningCharacter(_ character: String?) {
-        // Only update if the value actually changes
         guard currentLearningCharacter != character else { return }
 
         currentLearningCharacter = character
@@ -76,8 +65,7 @@ class AppStateManager: ObservableObject {
             UserDefaults.standard.set(char, forKey: currentLearningCharacterKey)
             print("Saved currentLearningCharacter: \(char)")
         } else {
-            UserDefaults.standard.removeObject(
-                forKey: currentLearningCharacterKey)
+            UserDefaults.standard.removeObject(forKey: currentLearningCharacterKey)
             print("Cleared currentLearningCharacter")
         }
     }
@@ -94,29 +82,25 @@ class AppStateManager: ObservableObject {
             if let profile = profiles.first, hasCompletedOnboarding {
                 self.userProfile = profile
                 self.onboardingCompleted = true
-                // --- Set initial learning character if needed ---
                 if currentLearningCharacter == nil {
                     let nextChar = characterProgress.getNextCharacterToLearn()
-                    // Don't save here, just set for the session start
                     self.currentLearningCharacter = nextChar
                     print(
                         "Setting initial currentLearningCharacter in checkOnboardingStatus: \(nextChar)"
                     )
                 }
-                // --- End Setting ---
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation { self.currentScreen = .mainApp }
                 }
             } else {
-                // Onboarding not complete, clear learning character state
-                setCurrentLearningCharacter(nil)  // Ensure it's cleared
+                setCurrentLearningCharacter(nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation { self.currentScreen = .login }
                 }
             }
         } catch {
             print("Error fetching user profiles: \(error)")
-            setCurrentLearningCharacter(nil)  // Ensure it's cleared on error
+            setCurrentLearningCharacter(nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation { self.currentScreen = .login }
             }
@@ -125,20 +109,15 @@ class AppStateManager: ObservableObject {
     }
 
     @MainActor
-    func completeOnboarding(with profile: UserProfile, in context: ModelContext)
-    {
+    func completeOnboarding(with profile: UserProfile, in context: ModelContext) {
         context.insert(profile)
         do {
             try context.save()
             self.userProfile = profile
             self.onboardingCompleted = true
             hasCompletedOnboarding = true
-
-            // --- Set initial learning character after onboarding ---
-            characterProgress.resetProgress()  // Start fresh
-            setCurrentLearningCharacter("A")  // Start with A after onboarding
-            // --- End Setting ---
-
+            characterProgress.resetProgress()
+            setCurrentLearningCharacter("A")
             withAnimation { self.currentScreen = .mainApp }
         } catch {
             print("Failed to save profile: \(error)")
@@ -146,17 +125,11 @@ class AppStateManager: ObservableObject {
     }
 
     func checkAndResetStreakIfNeeded() {
-        guard let lastDate = lastActivityDate else {
-            // No previous activity, streak is already 0 (or whatever default)
-            return
-        }
-
-        // Use Calendar to compare dates, ignoring time
+        guard let lastDate = lastActivityDate else { return }
         let calendar = Calendar.current
         if !calendar.isDateInYesterday(lastDate)
             && !calendar.isDateInToday(lastDate)
         {
-            // Last activity was before yesterday, reset streak
             print(
                 "Streak reset: Last activity was on \(lastDate), which is before yesterday."
             )
@@ -168,36 +141,28 @@ class AppStateManager: ObservableObject {
         }
     }
 
-    /// Call this function when the user completes a designated daily activity (e.g., Writing).
-    @MainActor  // Ensure UI updates happen on the main thread
+    @MainActor
     func recordActivityCompletion() {
         let calendar = Calendar.current
         let today = Date()
-
         guard let lastDate = lastActivityDate else {
-            // First activity ever
             print("First activity recorded. Starting streak.")
             currentStreak = 1
             lastActivityDate = today
             saveStreakData()
             return
         }
-
-        // Compare using start of day to ignore time component
         let startOfToday = calendar.startOfDay(for: today)
         let startOfLastDate = calendar.startOfDay(for: lastDate)
-
         let components = calendar.dateComponents(
             [.day], from: startOfLastDate, to: startOfToday)
         let dayDifference = components.day ?? 0
 
         if dayDifference == 0 {
-            // Activity already completed today, do nothing
             print(
                 "Activity already recorded for today. Streak remains \(currentStreak)."
             )
         } else if dayDifference == 1 {
-            // Consecutive day activity
             currentStreak += 1
             lastActivityDate = today
             print(
@@ -205,11 +170,10 @@ class AppStateManager: ObservableObject {
             )
             saveStreakData()
         } else {
-            // Missed one or more days
             print(
                 "Streak broken (last activity: \(lastDate), today: \(today)). Resetting streak."
             )
-            currentStreak = 1  // Start a new streak
+            currentStreak = 1
             lastActivityDate = today
             saveStreakData()
         }
@@ -219,28 +183,21 @@ class AppStateManager: ObservableObject {
     func saveOnboardingProfile(
         with profile: UserProfile, in context: ModelContext
     ) {
-        // This function now ONLY saves the profile and sets the persistent flag.
-        // It DOES NOT navigate or set the @Published onboardingCompleted flag.
         context.insert(profile)
         do {
             try context.save()
             self.userProfile = profile
-            // Set the persistent flag indicating basic setup (name/age) is done
             hasCompletedOnboarding = true
             print("Profile saved, hasCompletedOnboarding flag set to true.")
         } catch {
             print("Failed to save profile: \(error)")
-            // Handle error (show alert, etc.)
         }
     }
 
     @MainActor
     func finalizeOnboarding() {
-        // Now set the state variable to true
         self.onboardingCompleted = true
-        // Ensure learning character is set to 'A' to start
         self.setCurrentLearningCharacter("A")
-        // Navigate to the main app
         withAnimation {
             self.currentScreen = .mainApp
         }
@@ -252,26 +209,41 @@ class AppStateManager: ObservableObject {
         UserDefaults.standard.set(lastActivityDate, forKey: lastActivityDateKey)
     }
 
-    // Resets the streak count to 0 and clears the last activity date.
     private func resetStreakCount() {
         currentStreak = 0
-        lastActivityDate = nil  // Clear the date as well
-        saveStreakData()  // Persist the reset
+        lastActivityDate = nil
+        saveStreakData()
     }
 
-    @MainActor func resetOnboarding() {
-        // For testing - resets onboarding state
+    // MODIFIED: resetOnboarding now takes ModelContext
+    @MainActor func resetOnboarding(in context: ModelContext) {
+        // Clear profile from SwiftData using the provided context
+        do {
+            try context.delete(model: UserProfile.self)
+            // Optionally delete ReadingActivity as well if it should be cleared
+            // try context.delete(model: ReadingActivity.self)
+            try context.save()
+            self.userProfile = nil // Clear local copy
+            print("UserProfile data deleted during onboarding reset.")
+        } catch {
+            print("Error deleting UserProfile data during onboarding reset: \(error)")
+        }
+
         hasCompletedOnboarding = false
         onboardingCompleted = false
         characterProgress.resetProgress()
         setCurrentLearningCharacter(nil)
-
         resetStreakCount()
+        
+        // Clear any other app-specific UserDefaults keys if necessary
+        // UserDefaults.standard.removeObject(forKey: "someOtherAppSpecificKey")
 
         withAnimation {
-            currentScreen = .login
+            currentScreen = .login // Or .splash, depending on desired flow
         }
+        print("Onboarding has been reset.")
     }
+    
 
     #if DEBUG
         @MainActor

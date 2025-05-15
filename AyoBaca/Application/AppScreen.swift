@@ -21,7 +21,7 @@ enum AppScreen: Equatable {
     case profile
 
     // New Learning Activity Screens
-    case characterSelection(levelId: Int)
-    case spellingActivity(character: String)
-    case writingActivity(character: String)
+    case characterSelection(levelDefinition: LevelDefinition)
+    case spellingActivity(character: String, levelDefinition: LevelDefinition)
+    case writingActivity(character: String, levelDefinition: LevelDefinition)
 }

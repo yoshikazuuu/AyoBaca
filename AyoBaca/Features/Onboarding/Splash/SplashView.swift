@@ -5,35 +5,32 @@
 //  Created by Jerry Febriano on 05/04/25.
 //
 
-
 import SwiftUI
 
 struct SplashView: View {
-    @EnvironmentObject var appStateManager: AppStateManager
-    @State private var animateTitle = false
-    @State private var animateMascot = false
-    
+    @StateObject var viewModel: SplashViewModel
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 Color("AppOrange").ignoresSafeArea()
-                
-                // Animated floating circles background
+
                 ForEach(0..<6) { index in
                     Circle()
                         .fill(Color.white.opacity(0.07))
                         .frame(width: CGFloat.random(in: 40...120))
                         .position(
                             x: CGFloat.random(in: 0...geometry.size.width),
-                            y: CGFloat.random(in: 0...geometry.size.height)
-                        )
-                        .offset(y: animateTitle ? CGFloat.random(in: -30...30) : 0)
+                            y: CGFloat.random(in: 0...geometry.size.height))
+                        .offset(
+                            y: viewModel.animateTitle
+                                ? CGFloat.random(in: -30...30) : 0)
                         .animation(
-                            Animation.easeInOut(duration: Double.random(in: 2...4))
+                            Animation.easeInOut(
+                                duration: Double.random(in: 2...4))
                                 .repeatForever(autoreverses: true)
                                 .delay(Double.random(in: 0...2)),
-                            value: animateTitle
-                        )
+                            value: viewModel.animateTitle)
                 }
 
                 VStack(spacing: 10) {
@@ -45,31 +42,23 @@ struct SplashView: View {
                             .font(.appFont(.dylexicBold, size: 60))
                             .foregroundColor(.white)
                     }
-                    .opacity(animateTitle ? 1 : 0)
-                    .offset(y: animateTitle ? 0 : 20)
+                    .opacity(viewModel.animateTitle ? 1 : 0)
+                    .offset(y: viewModel.animateTitle ? 0 : 20)
                     .padding(.vertical, 150)
-                    
+
                     Image("mascot")
                         .scaledToFit()
                         .frame(height: geometry.size.height * 0.6)
-                        .scaleEffect(animateMascot ? 1.0 : 0.8)
-                        .opacity(animateMascot ? 1.0 : 0)
-                        .offset(y: animateMascot ? 0 : 50)
+                        .scaleEffect(viewModel.animateMascot ? 1.0 : 0.8)
+                        .opacity(viewModel.animateMascot ? 1.0 : 0)
+                        .offset(y: viewModel.animateMascot ? 0 : 50)
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
+                .frame(
+                    width: geometry.size.width, height: geometry.size.height)
             }
         }
         .onAppear {
-            // Trigger animations when view appears
-            withAnimation(.easeOut(duration: 0.8)) {
-                animateTitle = true
-            }
-            
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.6).delay(0.3)) {
-                animateMascot = true
-            }
-            
-            // Note: Navigation is now handled by AppStateManager in ContentView
+            viewModel.onAppear()
         }
     }
 }

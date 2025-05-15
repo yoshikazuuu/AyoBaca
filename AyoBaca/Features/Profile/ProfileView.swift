@@ -2,122 +2,93 @@
 //  ProfileView.swift
 //  AyoBaca
 //
-//  Created by Jerry Febriano on 07/04/25.
+//  Created by Jerry Febriano on 15/05/25.
 //
 
 
-// ProfileView.swift
 import SwiftUI
-import SwiftData
+import SwiftData // Only if ModelContext is directly used by View, otherwise remove
 
 struct ProfileView: View {
-    @EnvironmentObject var appStateManager: AppStateManager
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
-    
-    // State for showing confirmation dialogs
-    @State private var showOnboardingResetAlert = false
-    @State private var showProgressResetAlert = false
-    @State private var showUserDataResetAlert = false
-    
+    @StateObject var viewModel: ProfileViewModel
+    // @Environment(\.dismiss) private var dismiss // Not used if AppStateManager handles nav
+
     var body: some View {
+        // NavigationView is appropriate here if this view is presented independently
+        // or needs its own navigation bar for title and toolbar items.
+        // If ContentView handles all navigation, then NavigationView might not be needed here.
+        // For this structure, let's assume it manages its own bar.
         NavigationView {
             ZStack {
-                // Background
-                Color("AppOrange").ignoresSafeArea()
-                
+                Color("AppOrange").ignoresSafeArea() // Background
+
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Profile Header
                         profileHeader
-                        
-                        // Settings Sections
                         generalSettingsSection
-                        
-                        // Debug Controls (only in DEBUG mode)
                         #if DEBUG
                         debugControlsSection
                         #endif
-                        
-                        // App Info
                         appInfoSection
                     }
-                    .padding()
+                    .padding() // Padding for ScrollView content
                 }
             }
-            .navigationTitle("Profil")
-            .navigationBarTitleDisplayMode(.automatic)
+            .navigationTitle("Profil & Pengaturan")
+            .navigationBarTitleDisplayMode(.inline) // Or .automatic
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
-                        withAnimation {
-                            // Go back to main app view
-                            appStateManager.currentScreen = .mainApp
-                        }
+                        viewModel.navigateBackToDashboard()
                     } label: {
                         HStack {
                             Image(systemName: "chevron.left")
                             Text("Kembali")
                         }
-                        .foregroundColor(Color("AppOrange"))
+                        .foregroundColor(Color("AppOrange")) // Or .white if bar is colored
                     }
                 }
             }
-            // Alerts for confirmations
-            .alert("Reset Onboarding?", isPresented: $showOnboardingResetAlert) {
+            // Confirmation Alerts
+            .alert("Reset Onboarding?", isPresented: $viewModel.showOnboardingResetAlert) {
                 Button("Batal", role: .cancel) {}
-                Button("Reset", role: .destructive) {
-                    appStateManager.resetOnboarding()
-                }
+                Button("Reset", role: .destructive) { viewModel.performResetOnboarding() }
             } message: {
-                Text("Ini akan mengembalikan aplikasi ke pengalaman pertama kali. Kamu perlu memasukkan data anak lagi.")
+                Text("Ini akan mengembalikan aplikasi ke pengalaman pertama kali dan menghapus data profil. Kamu perlu memasukkan data anak lagi.")
             }
-            .alert("Reset Progres Karakter?", isPresented: $showProgressResetAlert) {
+            .alert("Reset Progres Karakter?", isPresented: $viewModel.showProgressResetAlert) {
                 Button("Batal", role: .cancel) {}
-                Button("Reset", role: .destructive) {
-                    appStateManager.characterProgress.resetProgress()
-                }
+                Button("Reset", role: .destructive) { viewModel.performResetCharacterProgress() }
             } message: {
                 Text("Ini akan menghapus semua huruf yang telah terbuka dan hanya menyisakan huruf A.")
             }
-            .alert("Hapus Semua Data?", isPresented: $showUserDataResetAlert) {
+            .alert("Hapus Semua Data Pengguna?", isPresented: $viewModel.showUserDataResetAlert) {
                 Button("Batal", role: .cancel) {}
-                Button("Hapus", role: .destructive) {
-                    Task {
-                        await clearAllUserData()
-                        appStateManager.resetOnboarding()
-                    }
-                }
+                Button("Hapus Semua", role: .destructive) { viewModel.performClearAllUserData() }
             } message: {
-                Text("Ini akan menghapus semua data pengguna dan kemajuan belajar. Tindakan ini tidak dapat dibatalkan.")
+                Text("PERHATIAN: Ini akan menghapus SEMUA data pengguna termasuk profil, kemajuan belajar, dan progres karakter. Tindakan ini tidak dapat dibatalkan.")
             }
         }
+        .navigationViewStyle(.stack) // Recommended for iOS 16+ if using NavigationView
     }
-    
-    // MARK: - UI Components
-    
+
+    // MARK: - UI Components (Subviews)
+
     private var profileHeader: some View {
         VStack(spacing: 16) {
-            // Profile image
             ZStack {
                 Circle()
                     .fill(Color("AppOrange").opacity(0.2))
                     .frame(width: 100, height: 100)
-                
-                Image("mascot")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 90, height: 90)
-                    .clipShape(Circle())
+                Image("mascot") // Ensure asset exists
+                    .resizable().scaledToFit()
+                    .frame(width: 90, height: 90).clipShape(Circle())
             }
-            
-            // User info
             VStack(spacing: 4) {
-                Text(appStateManager.userProfile?.childName ?? "Anak")
+                Text(viewModel.childName)
                     .font(.appFont(.dylexicBold, size: 24))
                     .foregroundColor(Color("AppOrange"))
-                
-                Text("\(appStateManager.userProfile?.childAge ?? 0) tahun")
+                Text("\(viewModel.childAge) tahun")
                     .font(.appFont(.rethinkRegular, size: 16))
                     .foregroundColor(.gray)
             }
@@ -125,126 +96,48 @@ struct ProfileView: View {
         .padding()
         .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 16).fill(Color.white)
                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
         )
     }
-    
+
     private var generalSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("Pengaturan Umum")
-                .font(.appFont(.rethinkBold, size: 18))
-                .padding(.leading, 8)
-                .foregroundColor(Color("AppOrange"))
-            
-            VStack(spacing: 0) {
-                settingRow(icon: "bell.fill", title: "Notifikasi", action: {
-                    print("Notifications tapped")
-                })
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(icon: "speaker.wave.2.fill", title: "Suara", action: {
-                    print("Sound settings tapped")
-                })
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(icon: "textformat.size", title: "Ukuran Font", action: {
-                    print("Font size tapped")
-                })
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-            )
+        SectionView(title: "Pengaturan Umum") {
+            settingRow(icon: "bell.fill", title: "Notifikasi", action: viewModel.notificationsTapped)
+            Divider().padding(.leading, 56)
+            settingRow(icon: "speaker.wave.2.fill", title: "Suara", action: viewModel.soundSettingsTapped)
+            Divider().padding(.leading, 56)
+            settingRow(icon: "textformat.size", title: "Ukuran Font", action: viewModel.fontSizeTapped)
         }
     }
-    
+
+    #if DEBUG
     private var debugControlsSection: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("Pengaturan Developer")
-                .font(.appFont(.rethinkBold, size: 18))
-                .padding(.leading, 8)
-                .foregroundColor(Color("AppOrange"))
-            
-            VStack(spacing: 0) {
-                settingRow(
-                    icon: "arrow.counterclockwise", 
-                    title: "Reset Onboarding", 
-                    iconColor: .red,
-                    action: {
-                        showOnboardingResetAlert = true
-                    }
-                )
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(
-                    icon: "character", 
-                    title: "Reset Kemajuan Karakter", 
-                    iconColor: .red,
-                    action: {
-                        showProgressResetAlert = true
-                    }
-                )
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(
-                    icon: "trash.fill", 
-                    title: "Hapus Semua Data", 
-                    iconColor: .red,
-                    action: {
-                        showUserDataResetAlert = true
-                    }
-                )
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-            )
+        SectionView(title: "Pengaturan Developer") {
+            settingRow(icon: "arrow.counterclockwise.circle.fill", title: "Reset Onboarding", iconColor: .orange, action: viewModel.confirmResetOnboarding)
+            Divider().padding(.leading, 56)
+            settingRow(icon: "character.book.closed.fill", title: "Reset Kemajuan Karakter", iconColor: .orange, action: viewModel.confirmResetCharacterProgress)
+            Divider().padding(.leading, 56)
+            settingRow(icon: "trash.circle.fill", title: "Hapus Semua Data Pengguna", iconColor: .red, action: viewModel.confirmClearAllUserData)
         }
     }
-    
+    #endif
+
     private var appInfoSection: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("Tentang Aplikasi")
-                .font(.appFont(.rethinkBold, size: 18))
-                .padding(.leading, 8)
-                .foregroundColor(Color("AppOrange"))
-            
-            VStack(spacing: 0) {
-                settingRow(icon: "info.circle.fill", title: "Versi 1.0.0", action: {})
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(icon: "doc.text.fill", title: "Ketentuan Penggunaan", action: {
-                    print("Terms tapped")
-                })
-                
-                Divider().padding(.leading, 56)
-                
-                settingRow(icon: "hand.raised.fill", title: "Kebijakan Privasi", action: {
-                    print("Privacy tapped")
-                })
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-            )
+        SectionView(title: "Tentang Aplikasi") {
+            settingRow(icon: "info.circle.fill", title: viewModel.appVersion, isStatic: true, action: {})
+            Divider().padding(.leading, 56)
+            settingRow(icon: "doc.text.fill", title: "Ketentuan Penggunaan", action: viewModel.termsTapped)
+            Divider().padding(.leading, 56)
+            settingRow(icon: "hand.raised.fill", title: "Kebijakan Privasi", action: viewModel.privacyPolicyTapped)
         }
     }
-    
+
     // Helper for creating consistent setting rows
     private func settingRow(
-        icon: String, 
-        title: String, 
+        icon: String, title: String,
         iconColor: Color = Color("AppOrange"),
+        isStatic: Bool = false, // For rows that don't navigate or perform actions
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
@@ -252,64 +145,48 @@ struct ProfileView: View {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(iconColor)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 36, alignment: .center) // Centered icon
                     .padding(.leading, 10)
-                
+
                 Text(title)
                     .font(.appFont(.rethinkRegular, size: 16))
-                    .foregroundColor(.black)
-                
+                    .foregroundColor(.black.opacity(0.8)) // Slightly less stark black
+
                 Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-                    .padding(.trailing)
+
+                if !isStatic { // Only show chevron if it's an actionable row
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray.opacity(0.7))
+                        .padding(.trailing)
+                }
             }
             .padding(.vertical, 12)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(PlainButtonStyle()) // Use PlainButtonStyle for list-like rows
+        .disabled(isStatic) // Disable button interaction for static rows
     }
     
-    // MARK: - Data Management Functions
-    
-    @MainActor
-    private func clearAllUserData() async {
-        do {
-            // Delete UserProfile data
-            try modelContext.delete(model: UserProfile.self)
-            
-            // Delete ReadingActivity data
-            try modelContext.delete(model: ReadingActivity.self)
-            
-            // Reset character progress
-            appStateManager.characterProgress.resetProgress()
-            
-            print("All user data cleared successfully")
-        } catch {
-            print("Error clearing user data: \(error)")
+    // Helper for section container
+    private struct SectionView<Content: View>: View {
+        let title: String
+        @ViewBuilder let content: Content
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) { // Increased spacing
+                Text(title)
+                    .font(.appFont(.rethinkBold, size: 18))
+                    .padding(.leading, 12) // Align with content
+                    .foregroundColor(Color("AppOrange"))
+                
+                VStack(spacing: 0) { // No spacing between rows within the card
+                    content
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 12) // Slightly less rounded for inner card
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
+                )
+            }
         }
     }
-}
-
-// Extension for SwiftData convenience
-extension ModelContext {
-    func delete<T: PersistentModel>(model: T.Type) throws {
-        let descriptor = FetchDescriptor<T>()
-        let items = try fetch(descriptor)
-        for item in items {
-            delete(item)
-        }
-        try save()
-    }
-}
-
-// Preview
-#Preview {
-    // Create dummy data for preview
-    let previewStateManager = AppStateManager()
-    previewStateManager.userProfile = UserProfile(childName: "Budi", childAge: 7)
-    
-    return ProfileView()
-        .environmentObject(previewStateManager)
-        .modelContainer(AppModelContainer.preview)
 }

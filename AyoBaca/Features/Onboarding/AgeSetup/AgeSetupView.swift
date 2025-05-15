@@ -2,272 +2,194 @@
 //  AgeSetupView.swift
 //  AyoBaca
 //
-//  Created by Jerry Febriano on 04/04/25.
+//  Created by Jerry Febriano on 15/05/25.
 //
+
 
 import SwiftUI
 
 struct AgeSetupView: View {
-    @EnvironmentObject var appStateManager: AppStateManager
-    @EnvironmentObject var onboardingState: OnboardingState
-    @Environment(\.modelContext) private var modelContext
-    @State private var animateTitle = false
-    @State private var animateAgeSelector = false
-    @State private var animateContinueButton = false
-    @State private var animateMascot = false
-    @State private var showConfetti = false
-
-    // Expanded age range from 1 to 15
-    let ages = Array(1...15)
+    @StateObject var viewModel: AgeSetupViewModel
+    @EnvironmentObject var onboardingState: OnboardingState // For mascot image animation
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 Color("AppOrange").ignoresSafeArea()
-
                 FloatingAlphabetBackground(
-                    count: 25, fontStyle: .dylexicRegular)
+                    count: 25, fontStyle: .dylexicRegular
+                )
 
                 VStack(spacing: 20) {
-                    // Back button row
-                    HStack {
-                        Button {
-                            withAnimation(
-                                .spring(response: 0.6, dampingFraction: 0.7)
-                            ) {
-                                appStateManager.currentScreen = .nameSetup
-                            }
-                        } label: {
-                            Image(systemName: "arrow.left")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                                .padding()
-                                .background(Circle().fill(.white.opacity(0.2)))
-                        }
-                        .padding(.leading, 20)
-
-                        Spacer()
-                    }
-                    .padding(.top, 10)
-
+                    backButtonRow
                     Spacer()
+                    titleText
+                    ageSelectorScrollView(geometry: geometry)
 
-                    // Title
-                    Text("Umur Anak")
-                        .font(.appFont(.rethinkExtraBold, size: 32))
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .opacity(animateTitle ? 1 : 0)
-                        .offset(y: animateTitle ? 0 : 20)
-
-                    // Scrollable age selector
-                    VStack {
-                        Text("Pilih umur:")
-                            .foregroundColor(.white)
-                            .font(.appFont(.rethinkRegular, size: 24))
-                            .opacity(animateAgeSelector ? 1 : 0)
-
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 15) {
-                                ForEach(ages, id: \.self) { age in
-                                    Button {
-                                        withAnimation(.spring(response: 0.4)) {
-                                            onboardingState.childAge = age
-                                            showConfetti = true
-                                        }
-
-                                        // Show continue button after selection
-                                        withAnimation(
-                                            .spring(
-                                                response: 0.6,
-                                                dampingFraction: 0.7
-                                            ).delay(0.3)
-                                        ) {
-                                            animateContinueButton = true
-                                        }
-                                    } label: {
-                                        Text("\(age)")
-                                            .font(
-                                                .system(size: 30, weight: .bold)
-                                            )
-                                            .frame(width: 65, height: 65)
-                                            .foregroundColor(
-                                                onboardingState.childAge == age
-                                                    ? .white
-                                                    : Color("AppOrange")
-                                            )
-                                            .background(
-                                                onboardingState.childAge == age
-                                                    ? Color("AppOrange")
-                                                        .opacity(0.7)
-                                                    : Color.white
-                                            )
-                                            .clipShape(
-                                                RoundedRectangle(
-                                                    cornerRadius: 20)
-                                            )
-                                            .overlay(
-                                                RoundedRectangle(
-                                                    cornerRadius: 20
-                                                )
-                                                .stroke(
-                                                    onboardingState.childAge
-                                                        == age
-                                                        ? Color.white
-                                                        : Color.clear,
-                                                    lineWidth: 2
-                                                )
-                                            )
-                                            .shadow(
-                                                color: Color.black.opacity(0.1),
-                                                radius: 4, x: 0, y: 2)
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .scaleEffect(
-                                        onboardingState.childAge == age
-                                            ? 1.1 : 1.0
-                                    )
-                                    .scaleEffect(animateAgeSelector ? 1 : 0.5)
-                                    .opacity(animateAgeSelector ? 1 : 0)
-                                    .animation(
-                                        .spring(response: 0.5)
-                                            .delay(
-                                                0.1 + Double(age - 1) * 0.03),
-                                        value: animateAgeSelector
-                                    )
-                                }
-                            }
-                            .padding(.horizontal, 20)
-                            .frame(height: 100)  // Increased height to accommodate the taller buttons + scaling
-                        }
-                        .padding(.vertical, 5)
-
-                    }
-                    .frame(width: geometry.size.width)
-
-                    // Continue button appears after selection
-                    if animateContinueButton || onboardingState.childAge != nil
+                    if viewModel.animateContinueButton
+                        || viewModel.onboardingState.childAge != nil
                     {
-                        Button {
-                            let newProfile = UserProfile(
-                                childName: onboardingState.childName,
-                                childAge: onboardingState.childAge ?? 7,
-                                completedOnboarding: true
-                            )
-                            
-                            appStateManager.saveOnboardingProfile(
-                                with: newProfile, in: modelContext)
-
-                            withAnimation(
-                                .spring(response: 0.6, dampingFraction: 0.7)
-                            ) {
-                                appStateManager.currentScreen =
-                                    .onboardingIntro1
-                            }
-
-                        } label: {
-                            Text("Mulai Petualangan!")
-                                .fontWeight(.semibold)
-                                .foregroundColor(Color("AppOrange"))
-                                .padding()
-                                .frame(width: 200)
-                                .background(Color.white)
-                                .cornerRadius(25)
-                                .shadow(
-                                    color: Color.black.opacity(0.1), radius: 5,
-                                    x: 0, y: 3)
-                        }
-                        .padding(.top, 10)
-                        .scaleEffect(animateContinueButton ? 1 : 0.8)
-                        .opacity(animateContinueButton ? 1 : 0)
-                        .transition(.scale.combined(with: .opacity))
+                        continueButton
                     }
 
-                    // Progress indicator
                     OnboardingProgressView(currentStep: 3, totalSteps: 4)
                         .padding(.top, 10)
-
                     Spacer()
-
-                    // Mascot and speech bubble
-                    ZStack(alignment: .top) {
-                        // Speech bubble only shows when mascot is animated
-                        if animateMascot {
-                            Text("Berapa umurmu?")
-                                .font(.appFont(.rethinkRegular, size: 16))
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(Color.white)
-                                .cornerRadius(15)
-                                .offset(y: -60)
-                                .transition(.scale.combined(with: .opacity))
-                                .zIndex(1)
-                        }
-
-                        // Mascot image
-                        Image("mascot")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(
-                                width: geometry.size.width * 1.5,
-                                height: geometry.size.height * 1
-                            )
-                            .offset(y: animateMascot ? 0 : 150)
-                            .opacity(animateMascot ? 1 : 0)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 20)
+                    mascotAndBubble(geometry: geometry)
                 }
                 .padding(.vertical, 10)
-                .frame(width: geometry.size.width)  // Constrain to screen width
+                .frame(width: geometry.size.width)
 
-                // Confetti effect when age is selected
-                if showConfetti {
-                    ConfettiView()
+                if viewModel.showConfetti {
+                    ConfettiView() // Ensure this view is correctly implemented
                         .allowsHitTesting(false)
                         .opacity(0.7)
-                        .onAppear {
-                            // Hide confetti after a delay
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2)
-                            {
-                                withAnimation {
-                                    showConfetti = false
-                                }
-                            }
-                        }
+                        // Confetti hiding is managed by the ViewModel
                 }
             }
         }
         .onAppear {
-            // Sequence the animations
-            withAnimation(.easeOut(duration: 0.5)) {
-                animateTitle = true
-            }
-
-            withAnimation(
-                .spring(response: 0.6, dampingFraction: 0.7).delay(0.2)
-            ) {
-                animateAgeSelector = true
-            }
-
-            withAnimation(
-                .spring(response: 0.7, dampingFraction: 0.6).delay(0.3)
-            ) {
-                animateMascot = true
-            }
-
-            // If age was already selected (coming back from next screen)
-            if onboardingState.childAge != nil {
-                withAnimation {
-                    animateContinueButton = true
-                }
-            }
+            viewModel.viewDidAppear()
         }
     }
-}
 
-#Preview {
-    AgeSetupView()
-        .environmentObject(OnboardingState())
+    // MARK: - Subviews
+    private var backButtonRow: some View {
+        HStack {
+            Button { viewModel.navigateBack() } label: {
+                Image(systemName: "arrow.left")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Circle().fill(Color.white.opacity(0.2)))
+            }
+            .padding(.leading, 20)
+            Spacer()
+        }
+        .padding(.top, 10)
+    }
+
+    private var titleText: some View {
+        Text("Umur Anak")
+            .font(.appFont(.rethinkExtraBold, size: 32))
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .opacity(viewModel.animateTitle ? 1 : 0)
+            .offset(y: viewModel.animateTitle ? 0 : 20)
+    }
+
+    private func ageSelectorScrollView(geometry: GeometryProxy) -> some View {
+        VStack {
+            Text("Pilih umur:")
+                .foregroundColor(.white)
+                .font(.appFont(.rethinkRegular, size: 24))
+                .opacity(viewModel.animateAgeSelector ? 1 : 0)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 15) {
+                    ForEach(viewModel.ages, id: \.self) { age in
+                        ageButton(age: age)
+                            .scaleEffect(viewModel.animateAgeSelector ? 1 : 0.5)
+                            .opacity(viewModel.animateAgeSelector ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.5)
+                                    .delay(
+                                        0.1 + Double(age - viewModel.ages.first!)
+                                            * 0.03
+                                    ), // Staggered animation
+                                value: viewModel.animateAgeSelector
+                            )
+                    }
+                }
+                .padding(.horizontal, 20) // Padding for the HStack content
+                .frame(height: 100) // Ensure enough height for scaled buttons
+            }
+            .padding(.vertical, 5)
+        }
+        .frame(width: geometry.size.width) // Ensure VStack takes full width
+    }
+
+    private func ageButton(age: Int) -> some View {
+        Button {
+            viewModel.selectAge(age)
+        } label: {
+            Text("\(age)")
+                .font(.system(size: 30, weight: .bold))
+                .frame(width: 65, height: 65)
+                .foregroundColor(
+                    viewModel.onboardingState.childAge == age
+                        ? .white : Color("AppOrange")
+                )
+                .background(
+                    viewModel.onboardingState.childAge == age
+                        ? Color("AppOrange").opacity(0.7) : Color.white
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(
+                            viewModel.onboardingState.childAge == age
+                                ? Color.white : Color.clear,
+                            lineWidth: 2
+                        )
+                )
+                .shadow(
+                    color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2
+                )
+        }
+        .buttonStyle(PlainButtonStyle()) // Removes default button styling
+        .scaleEffect(
+            viewModel.onboardingState.childAge == age ? 1.1 : 1.0
+        ) // Scale effect for selected age
+    }
+
+    private var continueButton: some View {
+        Button {
+            viewModel.continueToNextStep()
+        } label: {
+            Text("Mulai Petualangan!")
+                .fontWeight(.semibold)
+                .foregroundColor(Color("AppOrange"))
+                .padding()
+                .frame(minWidth: 220) // Ensure button has good width
+                .background(Color.white)
+                .cornerRadius(25)
+                .shadow(
+                    color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3
+                )
+        }
+        .padding(.top, 10)
+        .scaleEffect(viewModel.animateContinueButton ? 1 : 0.8)
+        .opacity(viewModel.animateContinueButton ? 1 : 0)
+        .transition(.scale.combined(with: .opacity))
+    }
+
+    private func mascotAndBubble(geometry: GeometryProxy) -> some View {
+        ZStack(alignment: .top) {
+            if viewModel.animateMascotSpeechBubble {
+                Text("Berapa umurmu?")
+                    .font(.appFont(.rethinkRegular, size: 16))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.white)
+                    .cornerRadius(15)
+                    .offset(y: -60)
+                    .transition(.scale.combined(with: .opacity))
+                    .zIndex(1)
+            }
+
+            Image("mascot")
+                .resizable()
+                .scaledToFit()
+                .frame(
+                    width: geometry.size.width * 0.8,
+                    height: geometry.size.height * 0.35
+                )
+                .offset(y: onboardingState.animateMascot ? 0 : 100)
+                .opacity(onboardingState.animateMascot ? 1 : 0)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 20)
+    }
 }

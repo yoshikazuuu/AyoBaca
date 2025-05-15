@@ -2,95 +2,87 @@
 //  OnboardingIntro1View.swift
 //  AyoBaca
 //
-//  Created by Jerry Febriano on 14/04/25.
+//  Created by Jerry Febriano on 15/05/25.
 //
 
 
-// OnboardingIntro1View.swift
 import SwiftUI
 
 struct OnboardingIntro1View: View {
-    @EnvironmentObject var appStateManager: AppStateManager
-    @EnvironmentObject var onboardingState: OnboardingState // Get child's name
-
-    @State private var animateBubble = false
-    @State private var animateMascot = false
+    @StateObject var viewModel: OnboardingIntroViewModel
+    // If mascot animation is globally shared via OnboardingState, keep this.
+    // Otherwise, viewModel.animateMascot can drive it.
+    // @EnvironmentObject var onboardingState: OnboardingState
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .center) { // Ensure ZStack centers its content
-                // Background
-                Image("onboarding1")  // Make sure this asset exists!
+            ZStack(alignment: .center) {
+                // Background for Intro1 (specific blue)
+                // This is now handled by ContentView's ZStack background logic
+                // Color(red: 0.6, green: 0.8, blue: 1.0).ignoresSafeArea()
+                Image("onboarding1") // Ensure this asset exists
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
+                    // The mascot is part of the background image here.
+                    // If it were a separate element, its animation would be:
+                    // .offset(y: viewModel.animateMascot ? 0 : 100)
+                    // .opacity(viewModel.animateMascot ? 1 : 0)
 
-                VStack {
+
+                VStack { // Main content VStack
+                    Spacer() // Pushes bubble towards center/bottom
+
                     // Speech Bubble
-                    ZStack {
-                        // Bubble Shape
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.white)
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .strokeBorder(
-                                        style: StrokeStyle(lineWidth: 3, dash: [10, 5])
-                                    )
-                                    .foregroundColor(Color("AppOrange").opacity(0.6))
-                            )
-                            .frame(width: 330, height: 350)
-
-                        // Text Content
-                        VStack(alignment: .center, spacing: 10) {
-                            Text("Halo, \(appStateManager.userProfile?.childName ?? "Anak")! Selamat datang di AYO BACA!")
-                                .font(
-                                    .appFont(.dylexicBold, size: 18)
-                                ) // Use your app font
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.black.opacity(0.8))
-
-                            Text("Aku **ADO**, teman belajarmu! Yuk kita mulai petualangan seru belajar membaca, sampai kamu jadi Master Membaca!")
-                                .font(
-                                    .appFont(.dylexicRegular, size: 16)
-                                ) // Use your app font
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.black.opacity(0.7))
-                                .lineSpacing(4)
-
+                    speechBubble
+                        .opacity(viewModel.animateBubble ? 1 : 0)
+                        .scaleEffect(viewModel.animateBubble ? 1 : 0.8)
+                        .onTapGesture { // Navigate on tap
+                            viewModel.navigateToOnboardingIntro2()
                         }
-                        .padding(EdgeInsets(top: 20, leading: 20, bottom: 25, trailing: 20)) // Adjust padding
-
-                    }
-                    .padding(.horizontal, 30)
-                    .opacity(animateBubble ? 1 : 0)
-                    .scaleEffect(animateBubble ? 1 : 0.8)
-                    .onTapGesture { // Navigate on tap
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                            appStateManager.currentScreen = .onboardingIntro2
-                        }
-                    }
+                    
+                    Spacer() // Pushes bubble towards center/top
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity) // Center the VStack
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.7, dampingFraction: 0.7).delay(0.2)) {
-                animateBubble = true
-            }
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.6).delay(0.4)) {
-                animateMascot = true
-            }
+            viewModel.onAppearIntro1()
         }
     }
-}
 
-#Preview {
-    // Create dummy data for preview
-    let previewStateManager = AppStateManager()
-    previewStateManager.userProfile = UserProfile(childName: "Budi", childAge: 7)
+    private var speechBubble: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 25)
+                        .strokeBorder(
+                            Color("AppOrange").opacity(0.6),
+                            style: StrokeStyle(lineWidth: 3, dash: [10, 5])
+                        )
+                )
+                .frame(width: 330, height: 280) // Adjusted height
 
-    return OnboardingIntro1View()
-        .environmentObject(previewStateManager)
-        .environmentObject(OnboardingState()) // Add if needed by subviews
+            VStack(alignment: .center, spacing: 15) { // Increased spacing
+                Text(
+                    "Halo, \(viewModel.childName)! Selamat datang di AYO BACA!"
+                )
+                .font(.appFont(.dylexicBold, size: 20)) // Slightly larger
+                .multilineTextAlignment(.center)
+                .foregroundColor(.black.opacity(0.85))
+
+                Text(
+                    "Aku **ADO**, teman belajarmu! Yuk kita mulai petualangan seru belajar membaca, sampai kamu jadi Master Membaca!"
+                )
+                .font(.appFont(.dylexicRegular, size: 17)) // Slightly larger
+                .multilineTextAlignment(.center)
+                .foregroundColor(.black.opacity(0.75))
+                .lineSpacing(5)
+            }
+            .padding(EdgeInsets(top: 25, leading: 25, bottom: 30, trailing: 25))
+        }
+        .padding(.horizontal, 30) // Padding for the ZStack containing the bubble
+    }
 }

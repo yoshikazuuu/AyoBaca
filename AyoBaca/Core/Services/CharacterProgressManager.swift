@@ -20,13 +20,12 @@ class CharacterProgressManager: ObservableObject {
             forKey: unlockedCharactersKey) as? [String]
         {
             unlockedCharacters = Set(savedCharacters)
-            // Ensure 'A' is always unlocked if the set is somehow empty after loading
-            if unlockedCharacters.isEmpty {
+            if unlockedCharacters.isEmpty { // Ensure 'A' is always unlocked
                 unlockedCharacters = ["A"]
                 saveProgress()
             }
         } else {
-            unlockedCharacters = ["A"]  // Default: Only 'A' is unlocked
+            unlockedCharacters = ["A"] // Default: Only 'A' is unlocked
             saveProgress()
         }
         print("Loaded unlocked characters: \(unlockedCharacters.sorted())")
@@ -44,7 +43,6 @@ class CharacterProgressManager: ObservableObject {
 
     func unlockCharacter(_ character: String) {
         let upperChar = character.uppercased()
-        // Only insert if it's not already there to avoid unnecessary saves/updates
         if !unlockedCharacters.contains(upperChar) {
             unlockedCharacters.insert(upperChar)
             saveProgress()
@@ -54,42 +52,33 @@ class CharacterProgressManager: ObservableObject {
         }
     }
 
-    // Finds the highest unlocked character alphabetically
     func getHighestUnlockedCharacter() -> String? {
         return unlockedCharacters.sorted().last
     }
 
-    // Gets the next character in the alphabet after a given one
     func getNextCharacter(after character: String) -> String? {
         let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         guard let currentUpper = character.uppercased().first,
             let currentIndex = alphabet.firstIndex(of: currentUpper)
         else {
-            return nil  // Invalid input character
+            return nil
         }
-
         let nextIndex = alphabet.index(after: currentIndex)
         if nextIndex < alphabet.endIndex {
             return String(alphabet[nextIndex])
         }
-        return nil  // Reached the end of the alphabet
+        return nil
     }
 
-    // --- New Helper: Get the next character the user should learn ---
     func getNextCharacterToLearn() -> String {
         guard let highest = getHighestUnlockedCharacter() else {
-            // Should not happen if 'A' is always unlocked, but handle defensively
             return "A"
         }
-        // If highest is Z, they've finished
         if highest == "Z" {
-            // What should happen when Z is done? Return Z or nil? Let's return Z for now.
             return "Z"
         }
-        // Otherwise, return the character after the highest unlocked one
-        return getNextCharacter(after: highest) ?? "A"  // Default to A if something goes wrong
+        return getNextCharacter(after: highest) ?? "A"
     }
-    // --- End New Helper ---
 
     func resetProgress() {
         unlockedCharacters = ["A"]

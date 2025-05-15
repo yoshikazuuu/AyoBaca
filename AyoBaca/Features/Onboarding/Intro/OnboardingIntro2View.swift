@@ -2,98 +2,91 @@
 //  OnboardingIntro2View.swift
 //  AyoBaca
 //
-//  Created by Jerry Febriano on 14/04/25.
+//  Created by Jerry Febriano on 15/05/25.
 //
 
 
-// OnboardingIntro2View.swift
 import SwiftUI
 
 struct OnboardingIntro2View: View {
-    @EnvironmentObject var appStateManager: AppStateManager
-
-    @State private var animateBubble = false
-    @State private var animateMascot = false
-    @State private var animateButton = false
+    @StateObject var viewModel: OnboardingIntroViewModel
+    // @EnvironmentObject var onboardingState: OnboardingState // If needed
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background
-                Image("onboarding2")  // Make sure this asset exists!
+                // Background for Intro2 (specific blue)
+                // This is now handled by ContentView's ZStack background logic
+                // Color(red: 0.6, green: 0.8, blue: 1.0).ignoresSafeArea()
+                Image("onboarding2") // Ensure this asset exists
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
+                    // Mascot is part of this background image.
+                    // If separate:
+                    // .offset(y: viewModel.animateMascot ? 0 : 100)
+                    // .opacity(viewModel.animateMascot ? 1 : 0)
 
-                VStack {
-                    // Speech Bubble
-                    ZStack {
-                        // Bubble Shape
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.white)
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .strokeBorder(
-                                        style: StrokeStyle(lineWidth: 3, dash: [10, 5])
-                                    )
-                                    .foregroundColor(Color("AppOrange").opacity(0.6))
-                            )
-                            .frame(width: 330, height: 400)
-
-                        // Text Content
-                        VStack(alignment: .center, spacing: 15) { // Increased spacing
-                            Text("Tapi sebelumnya, aku mau kenalin dulu tombol-tombol yang akan kamu pakai selama petualangan seru ini! Yuk, kita lihat bersama!")
-                                .font(
-                                    .appFont(.dylexicRegular, size: 17)
-                                ) // Use your app font
-                                .multilineTextAlignment(.center)
-                                .foregroundColor(.black.opacity(0.8))
-                                .lineSpacing(5) // Adjust line spacing
-
-                            // Start Button
-                            Button {
-                                // Finalize onboarding and navigate to Main App
-                                appStateManager.finalizeOnboarding()
-                            } label: {
-                                Text("Klik untuk Mulai")
-                                    .font(.appFont(.dylexicRegular, size: 16))
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 30)
-                                    .background(Color("AppYellow")) // Use your yellow color
-                                    .cornerRadius(25)
-                                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                            }
-                            .padding(.top, 10) // Add padding above button
-                            .opacity(animateButton ? 1 : 0)
-                            .scaleEffect(animateButton ? 1 : 0.9)
-
-                        }
-                        .padding(EdgeInsets(top: 20, leading: 20, bottom: 25, trailing: 20))
-
-                    }
-                    .padding(.horizontal, 30)
-                    .opacity(animateBubble ? 1 : 0)
-                    .scaleEffect(animateBubble ? 1 : 0.8)
+                VStack { // Main content VStack
+                    Spacer()
+                    speechBubbleWithButton
+                        .opacity(viewModel.animateBubble ? 1 : 0)
+                        .scaleEffect(viewModel.animateBubble ? 1 : 0.8)
+                    Spacer()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.7, dampingFraction: 0.7).delay(0.2)) {
-                animateBubble = true
-            }
-             withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5)) {
-                animateButton = true
-            }
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.6).delay(0.4)) {
-                animateMascot = true
-            }
+            viewModel.onAppearIntro2()
         }
     }
-}
 
-#Preview {
-    OnboardingIntro2View()
-        .environmentObject(AppStateManager())
+    private var speechBubbleWithButton: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 25)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .strokeBorder(
+                            Color("AppOrange").opacity(0.5),
+                            style: StrokeStyle(lineWidth: 3, dash: [8, 6])
+                        )
+                )
+                .frame(width: 330, height: 280) // Adjusted height
+
+            VStack(alignment: .center, spacing: 20) { // Increased spacing
+                Text(
+                    "Tapi sebelumnya, aku mau kenalin dulu tombol-tombol yang akan kamu pakai selama petualangan seru ini! Yuk, kita lihat bersama!"
+                )
+                .font(.appFont(.dylexicRegular, size: 18)) // Slightly larger
+                .multilineTextAlignment(.center)
+                .foregroundColor(.black.opacity(0.8))
+                .lineSpacing(5)
+
+                // Start Button
+                Button {
+                    viewModel.finalizeOnboardingAndNavigateToMainApp()
+                } label: {
+                    Text("Klik untuk Mulai")
+                        .font(.appFont(.dylexicBold, size: 17)) // Bolder
+                        .foregroundColor(.white)
+                        .padding(.vertical, 14) // Slightly taller
+                        .padding(.horizontal, 35) // Slightly wider
+                        .background(Color("AppYellow"))
+                        .cornerRadius(30) // More rounded
+                        .shadow(
+                            color: Color.black.opacity(0.2),
+                            radius: 4, x: 0, y: 2
+                        )
+                }
+                .padding(.top, 10)
+                .opacity(viewModel.animateButton ? 1 : 0)
+                .scaleEffect(viewModel.animateButton ? 1 : 0.9)
+            }
+            .padding(EdgeInsets(top: 25, leading: 25, bottom: 30, trailing: 25))
+        }
+        .padding(.horizontal, 30)
+    }
 }
