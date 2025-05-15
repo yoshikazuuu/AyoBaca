@@ -14,7 +14,7 @@
 		92D8725C2DA0082A009A8C1F /* Exceptions for "AyoBaca" folder in "AyoBaca" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = 92D8722A2D9FF6C0009A8C1F /* AyoBaca */;
 		};
@@ -268,7 +268,7 @@
 				DEVELOPMENT_TEAM = 8FJ43598MQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AyoBaca/Info.plist;
+				INFOPLIST_FILE = AyoBaca/Resources/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "AyoBaca memerlukan akses mikrofon untuk latihan pengucapan huruf";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "AyoBaca memerlukan akses mikrofon untuk mendengarkan pengucapan huruf Anda";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -300,7 +300,7 @@
 				DEVELOPMENT_TEAM = 8FJ43598MQ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AyoBaca/Info.plist;
+				INFOPLIST_FILE = AyoBaca/Resources/Info.plist;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "AyoBaca memerlukan akses mikrofon untuk latihan pengucapan huruf";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "AyoBaca memerlukan akses mikrofon untuk mendengarkan pengucapan huruf Anda";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

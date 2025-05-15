@@ -45,7 +45,9 @@ struct ProfileView: View {
                             Image(systemName: "chevron.left")
                             Text("Kembali")
                         }
-                        .foregroundColor(Color("AppOrange")) // Or .white if bar is colored
+                        .foregroundColor(
+                            .appYellow
+                        ) // Or .white if bar is colored
                     }
                 }
             }

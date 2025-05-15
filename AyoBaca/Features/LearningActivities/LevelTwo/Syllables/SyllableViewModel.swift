@@ -1,10 +1,5 @@
-//
-//  SyllableViewModel.swift
-//  AyoBaca
-//
-//  Created by Jerry Febriano on 16/05/25.
-//
-
+// ./Features/LearningActivities/LevelTwo/Syllables/SyllableViewModel.swift
+// ViewModel for the Syllable construction activity (Level 2)
 
 import SwiftUI
 import Combine
@@ -124,6 +119,7 @@ class SyllableViewModel: ObservableObject {
             isCorrectCombination = true
             feedbackMessage = "Benar! Kamu berhasil membuat sila \(combination)"
             showNextButton = true
+            appStateManager.recordActivityCompletion() // Record streak
             
             // Simulated haptic success feedback
             UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -139,7 +135,17 @@ class SyllableViewModel: ObservableObject {
     func playSound() {
         // In a real implementation, this would play the corresponding audio file
         // This is a placeholder that would be replaced by actual AVAudioPlayer implementation
-        print("Playing sound for syllable: \(slotLetters.compactMap { $0?.letter }.joined())")
+        let syllable = slotLetters.compactMap { $0?.letter }.joined()
+        guard !syllable.isEmpty else { return }
+        
+        let utterance = AVSpeechUtterance(string: syllable)
+        utterance.voice = AVSpeechSynthesisVoice(language: "id-ID")
+        utterance.rate = AVSpeechUtteranceMinimumSpeechRate * 0.95 // Slightly adjusted rate
+        
+        // Using AVSpeechSynthesizer directly if no complex audio management is needed
+        let speechSynthesizer = AVSpeechSynthesizer()
+        speechSynthesizer.speak(utterance)
+        print("Playing sound for syllable: \(syllable)")
     }
     
     func nextTask() {
@@ -148,36 +154,41 @@ class SyllableViewModel: ObservableObject {
             setupTask(taskSequence[currentTaskIndex])
         } else {
             // All tasks completed, return to map
-            appStateManager.navigateTo(.levelMap)
+            feedbackMessage = "Selamat! Kamu menyelesaikan semua tugas sila!"
+            // Optionally, navigate back after a delay or show a completion message longer
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self.appStateManager.goBack() // Go back to level map
+            }
         }
     }
     
+    // Changed to use goBack for standard back navigation behavior
     func navigateBack() {
-        appStateManager.navigateTo(.levelMap)
+        appStateManager.goBack()
     }
     
     // MARK: - Private Methods
     private func setupCVTask() {
         // Create letter tiles for CV combinations
-        let consonants = ["B", "D", "K", "L", "M", "P", "S", "T"]
+        let consonants = ["B", "D", "K", "L", "M", "P", "S", "T", "C", "G", "J", "N", "NY", "NG"]
         let vowels = ["A", "I", "U", "E", "O"]
         
         availableLetters = []
         // Add a subset of consonants and vowels (not all, to avoid clutter)
-        availableLetters.append(contentsOf: consonants.prefix(4).map { LetterTile(letter: $0, type: .consonant) })
-        availableLetters.append(contentsOf: vowels.prefix(2).map { LetterTile(letter: $0, type: .vowel) })
+        // Ensure we have enough for a good selection, e.g., 4-5 consonants, 2-3 vowels
+        availableLetters.append(contentsOf: consonants.shuffled().prefix(5).map { LetterTile(letter: $0, type: .consonant) })
+        availableLetters.append(contentsOf: vowels.shuffled().prefix(3).map { LetterTile(letter: $0, type: .vowel) })
         availableLetters.shuffle()
         
-        // Define valid combinations
+        // Define valid combinations - expanded set
         validCombinations = Set([
-            "BA", "BI", "BU", "BE", "BO",
-            "DA", "DI", "DU", "DE", "DO",
-            "KA", "KI", "KU", "KE", "KO",
-            "LA", "LI", "LU", "LE", "LO",
-            "MA", "MI", "MU", "ME", "MO",
-            "PA", "PI", "PU", "PE", "PO",
-            "SA", "SI", "SU", "SE", "SO",
-            "TA", "TI", "TU", "TE", "TO"
+            "BA", "BI", "BU", "BE", "BO", "CA", "CI", "CU", "CE", "CO",
+            "DA", "DI", "DU", "DE", "DO", "GA", "GI", "GU", "GE", "GO",
+            "KA", "KI", "KU", "KE", "KO", "LA", "LI", "LU", "LE", "LO",
+            "MA", "MI", "MU", "ME", "MO", "NA", "NI", "NU", "NE", "NO",
+            "PA", "PI", "PU", "PE", "PO", "SA", "SI", "SU", "SE", "SO",
+            "TA", "TI", "TU", "TE", "TO", "YA", "YI", "YU", "YE", "YO",
+            "NGA", "NGI", "NGU", "NGE", "NGO", "NYA", "NYI", "NYU", "NYE", "NYO"
         ])
     }
     
@@ -193,23 +204,27 @@ class SyllableViewModel: ObservableObject {
     
     private func setupCVCTask() {
         // Create letter tiles for CVC task
-        let initialConsonants = ["B", "D", "K", "L", "M", "P", "S", "T"]
+        let initialConsonants = ["B", "D", "K", "L", "M", "P", "S", "T", "R", "N"]
         let vowels = ["A", "I", "U", "E", "O"]
-        let finalConsonants = ["N", "M", "R", "S", "T"]
+        let finalConsonants = ["N", "M", "R", "S", "T", "K", "P", "NG"] // Added K, P, NG
         
         availableLetters = []
-        availableLetters.append(contentsOf: initialConsonants.prefix(2).map { LetterTile(letter: $0, type: .consonant) })
-        availableLetters.append(contentsOf: vowels.prefix(2).map { LetterTile(letter: $0, type: .vowel) })
-        availableLetters.append(contentsOf: finalConsonants.prefix(2).map { LetterTile(letter: $0, type: .consonant) })
+        availableLetters.append(contentsOf: initialConsonants.shuffled().prefix(3).map { LetterTile(letter: $0, type: .consonant) })
+        availableLetters.append(contentsOf: vowels.shuffled().prefix(2).map { LetterTile(letter: $0, type: .vowel) })
+        availableLetters.append(contentsOf: finalConsonants.shuffled().prefix(3).map { LetterTile(letter: $0, type: .consonant) })
         availableLetters.shuffle()
         
-        // Define valid combinations
+        // Define valid combinations - expanded set
         validCombinations = Set([
-            "BAN", "DAN", "KAN",
-            "BIN", "DIN", "MIN",
-            "BUR", "KUR", "TUR",
-            "BES", "MES", "TES",
-            "BOT", "KOT", "POT"
+            "BAN", "DAN", "KAN", "LAN", "MAN", "PAN", "SAN", "TAN", "RAN",
+            "BIN", "DIN", "KIN", "LIN", "MIN", "PIN", "SIN", "TIN", "RIN",
+            "BUR", "DUR", "KUR", "LUR", "MUR", "PUR", "SUR", "TUR", "RUR",
+            "BES", "DES", "KES", "LES", "MES", "PES", "SES", "TES", "RES",
+            "BOT", "DOT", "KOT", "LOT", "MOT", "POT", "SOT", "TOT", "ROT",
+            "BAK", "BIK", "BUK", "BEK", "BOK", // CVC ending in K
+            "CAP", "CIP", "CUP", "CEP", "COP", // CVC ending in P
+            "BANG", "BING", "BUNG", "BENG", "BONG" // CVC ending in NG
         ])
     }
 }
+
