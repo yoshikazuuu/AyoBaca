@@ -18,7 +18,7 @@ struct AyoBacaApp: App {
             #if DEBUG
             // Reset the datastore *before* configuring, only in DEBUG builds
             // This makes tips reappear every time you launch during development.
-            try Tips.resetDatastore()
+            // try Tips.resetDatastore()
             print("TipKit datastore reset for DEBUG build.")
             #endif
 

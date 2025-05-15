@@ -23,19 +23,3 @@ final class UserProfile {
         self.completedOnboarding = completedOnboarding
     }
 }
-
-// Optional: Reading activity model to demonstrate relationships
-@Model
-final class ReadingActivity {
-    var bookTitle: String
-    var dateCompleted: Date
-    var durationMinutes: Int
-    var profile: UserProfile?
-    
-    init(bookTitle: String, durationMinutes: Int, profile: UserProfile? = nil) {
-        self.bookTitle = bookTitle
-        self.dateCompleted = Date()
-        self.durationMinutes = durationMinutes
-        self.profile = profile
-    }
-}

@@ -37,8 +37,6 @@ struct LevelMapView: View {
             (id: 2, position: CGPoint(x: 0.75, y: 0.48), range: "F"..."J"),
             (id: 3, position: CGPoint(x: 0.30, y: 0.70), range: "K"..."O"),
             (id: 4, position: CGPoint(x: 0.80, y: 0.92), range: "P"..."T"),
-            (id: 5, position: CGPoint(x: 0.50, y: 0.30), range: "U"..."Z"),
-
         ]
 
     @State private var levels: [LevelInfo] = []

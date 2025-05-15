@@ -164,14 +164,14 @@ struct LoginView: View {
                                 print("Log In Tapped: \(email), \(password)")
 
                                 // Add simple validation
-                                if !email.isEmpty && !password.isEmpty {
-                                    withAnimation(
-                                        .spring(
-                                            response: 0.6, dampingFraction: 0.7)
-                                    ) {
-                                        appStateManager.currentScreen = .welcome
-                                    }
+
+                                withAnimation(
+                                    .spring(
+                                        response: 0.6, dampingFraction: 0.7)
+                                ) {
+                                    appStateManager.currentScreen = .welcome
                                 }
+
                             } label: {
                                 Text("Log In")
                                     .font(.appFont(.rethinkBold, size: 16))
