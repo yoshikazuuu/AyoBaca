@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import SwiftUI
 
-struct LevelDefinition: Equatable {
+struct LevelDefinition: Equatable, Hashable {
     let id: Int
     let position: CGPoint
     let range: ClosedRange<String>

@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI // Added for UIApplication if still needed, but we'll remove the AppDelegate part
 
 class AppStateManager: ObservableObject {
-    @Published var currentScreen: AppScreen = .splash
+    @Published private(set) var navigationPath: [AppScreen] = []
     @Published var onboardingCompleted: Bool = false
     @Published var userProfile: UserProfile?
     @Published var isLoading: Bool = true
@@ -48,12 +48,20 @@ class AppStateManager: ObservableObject {
         if !hasCompletedOnboarding {
             self.currentLearningCharacter = nil
             UserDefaults.standard.removeObject(forKey: currentLearningCharacterKey)
-        } else if self.currentLearningCharacter == nil && hasCompletedOnboarding {
+            self.navigationPath = [.splash]
+        } else if self.currentLearningCharacter == nil {
             let nextChar = characterProgress.getNextCharacterToLearn()
             self.currentLearningCharacter = nextChar
             print("Initial currentLearningCharacter set to: \(nextChar)")
+            self.navigationPath = [.splash]
+        } else {
+            self.navigationPath = [.splash]
         }
         checkAndResetStreakIfNeeded()
+    }
+
+    var currentScreen: AppScreen {
+        navigationPath.last ?? .splash
     }
 
     @MainActor
@@ -73,10 +81,8 @@ class AppStateManager: ObservableObject {
     @MainActor
     func checkOnboardingStatus(in context: ModelContext) {
         isLoading = true
-        let descriptor = FetchDescriptor<UserProfile>(sortBy: [
-            SortDescriptor(\.lastUpdated, order: .reverse)
-        ])
-
+        let descriptor = FetchDescriptor<UserProfile>(sortBy: [SortDescriptor(\.lastUpdated, order: .reverse)])
+        
         do {
             let profiles = try context.fetch(descriptor)
             if let profile = profiles.first, hasCompletedOnboarding {
@@ -85,24 +91,22 @@ class AppStateManager: ObservableObject {
                 if currentLearningCharacter == nil {
                     let nextChar = characterProgress.getNextCharacterToLearn()
                     self.currentLearningCharacter = nextChar
-                    print(
-                        "Setting initial currentLearningCharacter in checkOnboardingStatus: \(nextChar)"
-                    )
+                    print("Setting initial currentLearningCharacter in checkOnboardingStatus: \(nextChar)")
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    withAnimation { self.currentScreen = .mainApp }
+                    self.replaceNavigationStack(with: .mainApp)
                 }
             } else {
                 setCurrentLearningCharacter(nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    withAnimation { self.currentScreen = .login }
+                    self.replaceNavigationStack(with: .login)
                 }
             }
         } catch {
             print("Error fetching user profiles: \(error)")
             setCurrentLearningCharacter(nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                withAnimation { self.currentScreen = .login }
+                self.replaceNavigationStack(with: .login)
             }
         }
         isLoading = false
@@ -118,7 +122,7 @@ class AppStateManager: ObservableObject {
             hasCompletedOnboarding = true
             characterProgress.resetProgress()
             setCurrentLearningCharacter("A")
-            withAnimation { self.currentScreen = .mainApp }
+            self.replaceNavigationStack(with: .mainApp)
         } catch {
             print("Failed to save profile: \(error)")
         }
@@ -198,9 +202,7 @@ class AppStateManager: ObservableObject {
     func finalizeOnboarding() {
         self.onboardingCompleted = true
         self.setCurrentLearningCharacter("A")
-        withAnimation {
-            self.currentScreen = .mainApp
-        }
+        self.replaceNavigationStack(with: .mainApp)
         print("Onboarding finalized. Navigating to MainApp.")
     }
 
@@ -215,15 +217,12 @@ class AppStateManager: ObservableObject {
         saveStreakData()
     }
 
-    // MODIFIED: resetOnboarding now takes ModelContext
-    @MainActor func resetOnboarding(in context: ModelContext) {
-        // Clear profile from SwiftData using the provided context
+    @MainActor
+    func resetOnboarding(in context: ModelContext) {
         do {
             try context.delete(model: UserProfile.self)
-            // Optionally delete ReadingActivity as well if it should be cleared
-            // try context.delete(model: ReadingActivity.self)
             try context.save()
-            self.userProfile = nil // Clear local copy
+            self.userProfile = nil
             print("UserProfile data deleted during onboarding reset.")
         } catch {
             print("Error deleting UserProfile data during onboarding reset: \(error)")
@@ -235,15 +234,33 @@ class AppStateManager: ObservableObject {
         setCurrentLearningCharacter(nil)
         resetStreakCount()
         
-        // Clear any other app-specific UserDefaults keys if necessary
-        // UserDefaults.standard.removeObject(forKey: "someOtherAppSpecificKey")
-
-        withAnimation {
-            currentScreen = .login // Or .splash, depending on desired flow
-        }
+        self.replaceNavigationStack(with: .login)
         print("Onboarding has been reset.")
     }
     
+    @MainActor
+    func navigateTo(_ screen: AppScreen) {
+        if navigationPath.last != screen {
+            navigationPath.append(screen)
+        }
+    }
+
+    @MainActor
+    func goBack() {
+        guard !navigationPath.isEmpty else { return }
+        navigationPath.removeLast()
+    }
+    
+    @MainActor
+    func popToRoot() {
+        guard navigationPath.count > 1 else { return }
+        navigationPath.removeSubrange(1..<navigationPath.count)
+    }
+
+    @MainActor
+    func replaceNavigationStack(with screen: AppScreen) {
+        navigationPath = [screen]
+    }
 
     #if DEBUG
         @MainActor

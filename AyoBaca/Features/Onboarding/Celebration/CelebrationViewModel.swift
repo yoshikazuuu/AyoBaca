@@ -43,8 +43,6 @@ class CelebrationViewModel: ObservableObject {
         // If this is the *final* step of onboarding:
         // appStateManager.finalizeOnboardingAndNavigate()
         // else, if it's an intermediate celebration:
-        withAnimation {
-            appStateManager.currentScreen = .mainApp
-        }
+        appStateManager.replaceNavigationStack(with: .mainApp)
     }
 }

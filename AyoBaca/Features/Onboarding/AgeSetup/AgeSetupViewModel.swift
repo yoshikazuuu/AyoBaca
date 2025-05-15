@@ -100,14 +100,12 @@ class AgeSetupViewModel: ObservableObject {
         )
         appStateManager.saveOnboardingProfile(with: newProfile, in: modelContext)
 
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .onboardingIntro1
-        }
+        // withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.onboardingIntro1)
     }
 
     func navigateBack() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .nameSetup
-        }
+        // withAnimation is handled by goBack or NavigationStack's default
+        appStateManager.goBack()
     }
 }

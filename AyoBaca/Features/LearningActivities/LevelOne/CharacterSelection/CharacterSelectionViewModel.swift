@@ -141,17 +141,15 @@ class CharacterSelectionViewModel: ObservableObject {
         refreshCharacterStatuses()
 
         // Navigate to SpellingActivity for the selected character
-        withAnimation(.easeInOut) {
-            appStateManager.currentScreen = .spellingActivity(
-                character: characterInfo.character,
-                levelDefinition: self.levelDefinition
-            )
-        }
+        // The withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.spellingActivity(
+            character: characterInfo.character,
+            levelDefinition: self.levelDefinition
+        ))
     }
 
     func navigateBackToLevelMap() {
-        withAnimation(.easeInOut) {
-            appStateManager.currentScreen = .levelMap
-        }
+        // The withAnimation is handled by goBack or NavigationStack's default
+        appStateManager.goBack()
     }
 }

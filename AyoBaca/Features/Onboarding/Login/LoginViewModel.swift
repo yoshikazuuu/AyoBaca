@@ -48,14 +48,14 @@ class LoginViewModel: ObservableObject {
         // if email.isEmpty || password.isEmpty { ... return }
         print("Log In Tapped: \(email), \(password)")
         withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .welcome
+            appStateManager.replaceNavigationStack(with: .welcome)
         }
     }
 
     func signUpTapped() {
         print("Sign Up Tapped")
         // Navigate to sign up screen if you have one
-        // appStateManager.currentScreen = .signUp
+        // appStateManager.replaceNavigationStack(with: .signUp)
     }
 
     func forgotPasswordTapped() {

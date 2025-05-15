@@ -5,7 +5,7 @@
 //  Created by Jerry Febriano on 05/04/25.
 //
 
-enum AppScreen: Equatable {
+enum AppScreen: Equatable, Hashable {
     // Existing screens
     case splash
     case login

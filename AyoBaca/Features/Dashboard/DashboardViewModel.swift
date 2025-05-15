@@ -57,10 +57,10 @@ class DashboardViewModel: ObservableObject {
     }
 
     func mapButtonTapped() {
-        appStateManager.currentScreen = .levelMap
+        appStateManager.navigateTo(.levelMap)
     }
 
     func profileButtonTapped() {
-        appStateManager.currentScreen = .profile
+        appStateManager.navigateTo(.profile)
     }
 }

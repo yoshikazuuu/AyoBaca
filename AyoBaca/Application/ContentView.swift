@@ -14,127 +14,104 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        ZStack {
-            let backgroundColor =
-                (appStateManager.currentScreen == .onboardingIntro1
-                    || appStateManager.currentScreen == .onboardingIntro2)
-                ? Color(red: 0.6, green: 0.8, blue: 1.0) // Specific blue for intro screens
-                : Color("AppOrange") // Default orange for others
-
-            backgroundColor.ignoresSafeArea()
-
-            switch appStateManager.currentScreen {
-            case .splash:
-                SplashView(
-                    viewModel: SplashViewModel(
-                        appStateManager: appStateManager,
-                        modelContext: modelContext))
-                    .transition(.opacity)
-            case .login:
-                LoginView(
-                    viewModel: LoginViewModel(
-                        appStateManager: appStateManager))
-                    .pageTransition()
-                    .compositingGroup()
-            case .welcome:
-                WelcomeView(
-                    viewModel: WelcomeViewModel(
-                        appStateManager: appStateManager))
-                    .environmentObject(onboardingState)
-                    .pageTransition()
-                    .compositingGroup()
-            case .nameSetup:
-                NameSetupView(
-                    viewModel: NameSetupViewModel(
-                        appStateManager: appStateManager,
-                        onboardingState: onboardingState))
-                    .environmentObject(onboardingState)
-                    .pageTransition()
-                    .compositingGroup()
-            case .ageSetup:
-                AgeSetupView(
-                    viewModel: AgeSetupViewModel(
-                        appStateManager: appStateManager,
-                        onboardingState: onboardingState,
-                        modelContext: modelContext))
-                    .environmentObject(onboardingState)
-                    .pageTransition()
-                    .compositingGroup()
-            case .onboardingIntro1:
-                OnboardingIntro1View(
-                    viewModel: OnboardingIntroViewModel(
-                        appStateManager: appStateManager,
-                        onboardingState: onboardingState))
-                    .pageTransition()
-                    .compositingGroup()
-            case .onboardingIntro2:
-                OnboardingIntro2View(
-                    viewModel: OnboardingIntroViewModel(
-                        appStateManager: appStateManager,
-                        onboardingState: onboardingState))
-                    .pageTransition()
-                    .compositingGroup()
-            case .mainApp:
-                DashboardView(
-                    viewModel: DashboardViewModel(
-                        appStateManager: appStateManager,
-                        modelContext: modelContext // Pass modelContext if DashboardViewModel needs it
-                    ))
-                    .transition(.move(edge: .trailing))
-            case .profile:
-                ProfileView(
-                    viewModel: ProfileViewModel(
-                        appStateManager: appStateManager,
-                        modelContext: modelContext))
-                    .transition(.move(edge: .trailing))
-            case .levelMap:
-                LevelMapView(
-                    viewModel: LevelMapViewModel(
-                        appStateManager: appStateManager))
-                    .transition(.move(edge: .trailing))
-            
-            case let .characterSelection(levelDefinition):
-                CharacterSelectionView(
-                    viewModel: CharacterSelectionViewModel(
-                        appStateManager: appStateManager,
-                        levelDefinition: levelDefinition
-                    )
-                )
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .move(edge: .leading)))
-            
-            // MODIFIED: spellingActivity case now includes levelDefinition
-            case let .spellingActivity(character, levelDefinition):
-                SpellingView(
-                    viewModel: SpellingViewModel(
-                        appStateManager: appStateManager,
-                        character: character,
-                        levelDefinition: levelDefinition // Pass it to the ViewModel
-                    )
-                )
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .move(edge: .leading)))
-
-            case let .writingActivity(character, levelDefinition):
-                WritingView(
-                    viewModel: WritingViewModel(
-                        appStateManager: appStateManager,
-                        character: character,
-                        levelDefinition: levelDefinition
-                    )
-                )
-                .transition(
-                    .asymmetric(
-                        insertion: .move(edge: .trailing),
-                        removal: .move(edge: .leading)))
-            }
+        NavigationStack(path: navigationPathBinding) {
+            Color.clear
+                .navigationDestination(for: AppScreen.self) { screen in
+                    destinationView(for: screen)
+                        .navigationBarBackButtonHidden(true)
+                }
         }
-        .animation(
-            .easeInOut,
-            value: appStateManager.currentScreen)
+    }
+    
+    // Create a binding for the NavigationStack that respects navigationPath's private(set)
+    private var navigationPathBinding: Binding<[AppScreen]> {
+        Binding(
+            get: { appStateManager.navigationPath },
+            set: { _ in } // No-op setter since we use appStateManager's navigation methods
+        )
+    }
+
+    @ViewBuilder
+    private func destinationView(for screen: AppScreen) -> some View {
+        switch screen {
+        case .splash:
+            SplashView(
+                viewModel: SplashViewModel(
+                    appStateManager: appStateManager,
+                    modelContext: modelContext))
+        case .login:
+            LoginView(
+                viewModel: LoginViewModel(
+                    appStateManager: appStateManager))
+        case .welcome:
+            WelcomeView(
+                viewModel: WelcomeViewModel(
+                    appStateManager: appStateManager))
+                .environmentObject(onboardingState)
+        case .nameSetup:
+            NameSetupView(
+                viewModel: NameSetupViewModel(
+                    appStateManager: appStateManager,
+                    onboardingState: onboardingState))
+                .environmentObject(onboardingState)
+        case .ageSetup:
+            AgeSetupView(
+                viewModel: AgeSetupViewModel(
+                    appStateManager: appStateManager,
+                    onboardingState: onboardingState,
+                    modelContext: modelContext))
+                .environmentObject(onboardingState)
+        case .onboardingIntro1:
+            OnboardingIntro1View(
+                viewModel: OnboardingIntroViewModel(
+                    appStateManager: appStateManager,
+                    onboardingState: onboardingState))
+        case .onboardingIntro2:
+            OnboardingIntro2View(
+                viewModel: OnboardingIntroViewModel(
+                    appStateManager: appStateManager,
+                    onboardingState: onboardingState))
+        case .mainApp:
+            DashboardView(
+                viewModel: DashboardViewModel(
+                    appStateManager: appStateManager,
+                    modelContext: modelContext
+                ))
+        case .profile:
+            ProfileView(
+                viewModel: ProfileViewModel(
+                    appStateManager: appStateManager,
+                    modelContext: modelContext))
+        case .levelMap:
+            LevelMapView(
+                viewModel: LevelMapViewModel(
+                    appStateManager: appStateManager))
+        
+        case let .characterSelection(levelDefinition):
+            CharacterSelectionView(
+                viewModel: CharacterSelectionViewModel(
+                    appStateManager: appStateManager,
+                    levelDefinition: levelDefinition
+                )
+            )
+        
+        case let .spellingActivity(character, levelDefinition):
+            SpellingView(
+                viewModel: SpellingViewModel(
+                    appStateManager: appStateManager,
+                    character: character,
+                    levelDefinition: levelDefinition
+                )
+            )
+
+        case let .writingActivity(character, levelDefinition):
+            WritingView(
+                viewModel: WritingViewModel(
+                    appStateManager: appStateManager,
+                    character: character,
+                    levelDefinition: levelDefinition
+                )
+            )
+        }
     }
 }

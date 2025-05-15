@@ -85,15 +85,16 @@ class LevelMapViewModel: ObservableObject {
 
         print("Tapped Level \(level.id) (\(level.name)) with status \(level.status)")
 
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            // Pass the whole LevelDefinition object
-            appStateManager.currentScreen = .characterSelection(levelDefinition: tappedLevelDefinition)
-        }
+        // withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
     }
 
     func navigateBackToDashboard() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-            appStateManager.currentScreen = .mainApp
-        }
+        // This is a pop to root scenario if LevelMap is not the root.
+        // Or just a goBack if dashboard is a direct parent in stack.
+        // Assuming dashboard is the root of this particular flow or we want to go back one step.
+        // If it's meant to go to a specific state (e.g. fresh dashboard), currentScreen setter is fine.
+        // For now, let's use goBack() assuming it's a step back. If it needs to be a root pop, that can be adjusted.
+        appStateManager.goBack() // Or appStateManager.currentScreen = .mainApp if it's a reset to mainApp
     }
 }

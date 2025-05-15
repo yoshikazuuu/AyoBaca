@@ -109,24 +109,24 @@ class WritingViewModel: ObservableObject {
         }
 
         if targetCharacter.uppercased() == currentLevelLastChar {
-            appStateManager.currentScreen = .levelMap
+            appStateManager.replaceNavigationStack(with: .levelMap)
         } else {
             if let nextLearningChar = appStateManager.currentLearningCharacter,
                 !nextLearningChar.isEmpty,
                 nextLearningChar.uppercased()
                     != targetCharacter.uppercased()
             {
-                appStateManager.currentScreen = .spellingActivity(
+                appStateManager.replaceNavigationStack(with: .spellingActivity(
                     character: nextLearningChar,
                     levelDefinition: self.levelDefinition
-                )
+                ))
             } else {
                 // Fallback if next char is same or invalid
                 print(
                     "Warning: Next learning character issue after writing \(targetCharacter). Next: \(appStateManager.currentLearningCharacter ?? "nil"). Navigating to CharacterSelection."
                 )
-                appStateManager.currentScreen = .characterSelection(
-                    levelDefinition: self.levelDefinition)
+                appStateManager.replaceNavigationStack(with: .characterSelection(
+                    levelDefinition: self.levelDefinition))
             }
         }
     }
@@ -135,8 +135,8 @@ class WritingViewModel: ObservableObject {
         clearDrawing()
         withAnimation(.easeInOut) {
             // Navigate back to character selection of the *current* level
-            appStateManager.currentScreen = .characterSelection(
-                levelDefinition: self.levelDefinition)
+            appStateManager.replaceNavigationStack(with: .characterSelection(
+                levelDefinition: self.levelDefinition))
         }
     }
 }

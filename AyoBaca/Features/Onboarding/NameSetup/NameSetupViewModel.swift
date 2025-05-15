@@ -50,9 +50,8 @@ class NameSetupViewModel: ObservableObject {
 
     // MARK: - User Actions
     func navigateBack() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .welcome
-        }
+        // withAnimation is handled by goBack or NavigationStack's default
+        appStateManager.goBack()
     }
 
     func continueToAgeSetup() {
@@ -60,8 +59,7 @@ class NameSetupViewModel: ObservableObject {
             print("Child's name cannot be empty.")
             return
         }
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .ageSetup
-        }
+        // withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.ageSetup)
     }
 }

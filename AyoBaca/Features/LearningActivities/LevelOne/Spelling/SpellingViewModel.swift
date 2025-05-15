@@ -233,10 +233,10 @@ class SpellingViewModel: ObservableObject {
             }
             print("Bypassing to WritingActivity for character \(self.character)")
             withTransaction(Transaction(animation: .easeInOut)) {
-                self.appStateManager.currentScreen = .writingActivity(
+                self.appStateManager.replaceNavigationStack(with: .writingActivity(
                     character: self.character,
                     levelDefinition: self.levelDefinition
-                )
+                ))
             }
         }
     }
@@ -273,10 +273,10 @@ class SpellingViewModel: ObservableObject {
                 // Ensure we are still on this screen and correct before navigating
                 guard self.isCorrectPronunciation, self.showFeedback else { return }
                 withTransaction(Transaction(animation: .easeInOut)) {
-                    self.appStateManager.currentScreen = .writingActivity(
+                    self.appStateManager.replaceNavigationStack(with: .writingActivity(
                         character: self.character, // Current character being practiced
                         levelDefinition: self.levelDefinition
-                    )
+                    ))
                 }
             }
         } else {
@@ -382,8 +382,31 @@ class SpellingViewModel: ObservableObject {
     func navigateBackToCharacterSelection() {
         stopRecording(processed: true) // Ensure recording is stopped
         withAnimation(.easeInOut) {
-            appStateManager.currentScreen = .characterSelection(
-                levelDefinition: self.levelDefinition)
+            appStateManager.goBack()
+        }
+    }
+
+    func navigateToWritingActivityDirectly() {
+        // This function provides a direct path to WritingActivity,
+        // typically used after a successful pronunciation.
+        // It ensures any audio processing is stopped.
+        
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+        request?.endAudio()
+        recognitionTask?.finish()
+        request = nil
+        isMicActive = false
+        pulseEffect = false
+
+        print("Navigating directly to WritingActivity for character \(self.character)")
+        withTransaction(Transaction(animation: .easeInOut)) {
+            self.appStateManager.replaceNavigationStack(with: .writingActivity(
+                character: self.character,
+                levelDefinition: self.levelDefinition
+            ))
         }
     }
 }

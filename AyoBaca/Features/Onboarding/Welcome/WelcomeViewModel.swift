@@ -42,8 +42,7 @@ class WelcomeViewModel: ObservableObject {
     }
 
     func continueToProfileSetup() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .nameSetup
-        }
+        // withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.nameSetup)
     }
 }

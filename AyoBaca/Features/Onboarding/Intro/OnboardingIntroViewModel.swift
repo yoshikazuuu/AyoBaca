@@ -67,13 +67,13 @@ class OnboardingIntroViewModel: ObservableObject {
 
     // MARK: - User Actions / Navigation
     func navigateToOnboardingIntro2() {
-        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-            appStateManager.currentScreen = .onboardingIntro2
-        }
+        // withAnimation is handled by navigateTo or NavigationStack's default
+        appStateManager.navigateTo(.onboardingIntro2)
     }
 
     func finalizeOnboardingAndNavigateToMainApp() {
         // AppStateManager handles the logic of setting character to 'A', etc.
+        // and then sets appStateManager.currentScreen, which will reset the path.
         appStateManager.finalizeOnboarding()
     }
 }

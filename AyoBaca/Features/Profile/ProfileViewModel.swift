@@ -46,7 +46,7 @@ class ProfileViewModel: ObservableObject {
     }
 
     func navigateBackToDashboard() {
-        appStateManager.currentScreen = .mainApp
+        appStateManager.goBack()
     }
 
     func notificationsTapped() { print("Notifications settings tapped") }
