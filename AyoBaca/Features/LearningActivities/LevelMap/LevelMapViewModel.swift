@@ -17,30 +17,28 @@ class LevelMapViewModel: ObservableObject {
         appStateManager.characterProgress
     }
 
-    // Level definitions with original positions for placeholders.
-    // Level 1 is A-Z. Other levels are placeholders.
     private let levelDefinitions: [LevelDefinition] = [
         LevelDefinition(
             id: 1,
-            position: CGPoint(x: 0.25, y: 0.11), // Original position for Level 1
-            range: "A"..."Z", // Level 1 covers all alphabets
+            position: CGPoint(x: 0.25, y: 0.11),
+            range: "A"..."Z",
             name: "Pulau Alfabet (A-Z)"
         ),
         LevelDefinition(
             id: 2,
-            position: CGPoint(x: 0.75, y: 0.48), // Original position for Level 2
-            range: "CV"..."CV", // CV = Consonant-Vowel range
+            position: CGPoint(x: 0.75, y: 0.48),
+            range: "CV"..."CV", // Placeholder for syllable structures
             name: "Dunia Suku Kata"
         ),
         LevelDefinition(
             id: 3,
-            position: CGPoint(x: 0.30, y: 0.70), // Original position for Level 3
-            range: " "..." ", // Placeholder range
-            name: "Gunung Kata (Segera Hadir)"
+            position: CGPoint(x: 0.30, y: 0.70),
+            range: "WORD"..."WORD", // Placeholder for word structures
+            name: "Gunung Kata" // Updated name
         ),
         LevelDefinition(
             id: 4,
-            position: CGPoint(x: 0.80, y: 0.92), // Original position for Level 4
+            position: CGPoint(x: 0.80, y: 0.92),
             range: " "..." ", // Placeholder range
             name: "Sungai Cerita (Segera Hadir)"
         ),
@@ -54,10 +52,10 @@ class LevelMapViewModel: ObservableObject {
     func updateLevelStatuses() {
         var updatedLevelsData: [LevelInfo] = []
         for definition in levelDefinitions {
-            // Level 1 = current/unlocked, Level 2 = current/unlocked but still coming soon, others locked
             let status: LevelStatus
-            if definition.id == 1 || definition.id == 2 {
-                status = .current
+            // Level 1 (Alphabet), Level 2 (Syllables), Level 3 (Words) are current/unlocked
+            if definition.id == 1 || definition.id == 2 || definition.id == 3 {
+                status = .current // Or .unlocked depending on progression logic
             } else {
                 status = .locked
             }
@@ -84,7 +82,6 @@ class LevelMapViewModel: ObservableObject {
             return
         }
 
-        // Find the original LevelDefinition corresponding to the tapped LevelInfo
         guard let tappedLevelDefinition = levelDefinitions.first(where: { $0.id == level.id }) else {
             print("Error: Could not find LevelDefinition for tapped level ID: \(level.id)")
             return
@@ -92,25 +89,24 @@ class LevelMapViewModel: ObservableObject {
 
         print("Tapped Level \(level.id) (\(level.name)) with status \(level.status)")
 
-        // Navigate based on level ID
-        if level.id == 1 {
-            // Level 1: Character selection
+        switch level.id {
+        case 1:
             appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
-        } else if level.id == 2 {
-            // Level 2: Syllable activity
+        case 2:
             appStateManager.navigateTo(.syllableActivity(levelDefinition: tappedLevelDefinition))
-        } else {
-            // Default for other levels (if we add more in the future)
-            appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
+        case 3: // New case for Level 3
+            appStateManager.navigateTo(.wordFormationActivity(levelDefinition: tappedLevelDefinition))
+        default:
+            // Fallback for other potential levels, or could be an error/locked message
+            print("Navigation for level ID \(level.id) not yet implemented or level is a placeholder.")
+            // Optionally, navigate to a generic placeholder or show an alert
+            // For now, let's assume only defined levels are tappable if not locked.
+            // If it's an "upcoming" level that's not locked, you might show a "Coming Soon" view.
+            // Example: appStateManager.navigateTo(.comingSoon(levelDefinition: tappedLevelDefinition))
         }
     }
 
     func navigateBackToDashboard() {
-        // This is a pop to root scenario if LevelMap is not the root.
-        // Or just a goBack if dashboard is a direct parent in stack.
-        // Assuming dashboard is the root of this particular flow or we want to go back one step.
-        // If it's meant to go to a specific state (e.g. fresh dashboard), currentScreen setter is fine.
-        // For now, let's use goBack() assuming it's a step back. If it needs to be a root pop, that can be adjusted.
-        appStateManager.goBack() // Or appStateManager.currentScreen = .mainApp if it's a reset to mainApp
+        appStateManager.goBack()
     }
 }

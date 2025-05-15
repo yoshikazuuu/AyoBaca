@@ -15,7 +15,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack(path: navigationPathBinding) {
-            Color.clear
+            Color.clear // Initial view before any navigation destination
                 .navigationDestination(for: AppScreen.self) { screen in
                     destinationView(for: screen)
                         .navigationBarBackButtonHidden(true)
@@ -120,11 +120,19 @@ struct ContentView: View {
                     levelDefinition: levelDefinition
                 )
             )
-            .environmentObject(appStateManager) // Pass AppStateManager if needed directly by the view
+            .environmentObject(appStateManager)
             
         case let .syllableActivity(levelDefinition):
             SyllableView(
                 viewModel: SyllableViewModel(
+                    appStateManager: appStateManager,
+                    levelDefinition: levelDefinition
+                )
+            )
+
+        case let .wordFormationActivity(levelDefinition):
+            WordFormationView(
+                viewModel: WordFormationViewModel(
                     appStateManager: appStateManager,
                     levelDefinition: levelDefinition
                 )

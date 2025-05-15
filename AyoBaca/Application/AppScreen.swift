@@ -28,4 +28,7 @@ enum AppScreen: Equatable, Hashable {
     
     // Level 2 Screens
     case syllableActivity(levelDefinition: LevelDefinition)
+    
+    // Level 3 Screens
+    case wordFormationActivity(levelDefinition: LevelDefinition) // New
 }
