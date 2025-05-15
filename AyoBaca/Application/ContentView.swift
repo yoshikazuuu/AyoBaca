@@ -121,6 +121,14 @@ struct ContentView: View {
                 )
             )
             .environmentObject(appStateManager) // Pass AppStateManager if needed directly by the view
+            
+        case let .syllableActivity(levelDefinition):
+            SyllableView(
+                viewModel: SyllableViewModel(
+                    appStateManager: appStateManager,
+                    levelDefinition: levelDefinition
+                )
+            )
         }
     }
 }

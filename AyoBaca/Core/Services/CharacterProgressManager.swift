@@ -86,3 +86,4 @@ class CharacterProgressManager: ObservableObject {
         print("Character progress reset. Unlocked: \(unlockedCharacters)")
     }
 }
+

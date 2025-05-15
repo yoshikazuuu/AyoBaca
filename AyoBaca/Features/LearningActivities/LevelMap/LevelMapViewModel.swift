@@ -29,8 +29,8 @@ class LevelMapViewModel: ObservableObject {
         LevelDefinition(
             id: 2,
             position: CGPoint(x: 0.75, y: 0.48), // Original position for Level 2
-            range: " "..." ", // Placeholder range
-            name: "Dunia Suku Kata (Segera Hadir)"
+            range: "CV"..."CV", // CV = Consonant-Vowel range
+            name: "Dunia Suku Kata"
         ),
         LevelDefinition(
             id: 3,
@@ -54,7 +54,14 @@ class LevelMapViewModel: ObservableObject {
     func updateLevelStatuses() {
         var updatedLevelsData: [LevelInfo] = []
         for definition in levelDefinitions {
-            let status: LevelStatus = (definition.id == 1) ? .current : .locked
+            // Level 1 = current/unlocked, Level 2 = current/unlocked but still coming soon, others locked
+            let status: LevelStatus
+            if definition.id == 1 || definition.id == 2 {
+                status = .current
+            } else {
+                status = .locked
+            }
+            
             updatedLevelsData.append(
                 LevelInfo(
                     id: definition.id,
@@ -67,7 +74,7 @@ class LevelMapViewModel: ObservableObject {
         }
         self.levels = updatedLevelsData
         print(
-            "Updated Level Statuses (A-Z focus): \(self.levels.map { "ID: \($0.id) Status: \($0.status) Name: \($0.name)" })"
+            "Updated Level Statuses: \(self.levels.map { "ID: \($0.id) Status: \($0.status) Name: \($0.name)" })"
         )
     }
 
@@ -85,8 +92,17 @@ class LevelMapViewModel: ObservableObject {
 
         print("Tapped Level \(level.id) (\(level.name)) with status \(level.status)")
 
-        // withAnimation is handled by navigateTo or NavigationStack's default
-        appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
+        // Navigate based on level ID
+        if level.id == 1 {
+            // Level 1: Character selection
+            appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
+        } else if level.id == 2 {
+            // Level 2: Syllable activity
+            appStateManager.navigateTo(.syllableActivity(levelDefinition: tappedLevelDefinition))
+        } else {
+            // Default for other levels (if we add more in the future)
+            appStateManager.navigateTo(.characterSelection(levelDefinition: tappedLevelDefinition))
+        }
     }
 
     func navigateBackToDashboard() {
