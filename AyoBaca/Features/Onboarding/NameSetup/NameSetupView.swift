@@ -168,10 +168,7 @@ struct NameSetupView: View {
             Image("mascot") // Ensure asset exists
                 .resizable()
                 .scaledToFit()
-                .frame(
-                    width: geometry.size.width * 0.8, // Adjusted size
-                    height: geometry.size.height * 0.35 // Adjusted size
-                )
+                .frame(width: geometry.size.width * 1.5, height: geometry.size.height * 1)
                  // Use the corrected animateMascot property
                 .offset(y: onboardingState.animateMascot ? 0 : 100)
                 .opacity(onboardingState.animateMascot ? 1 : 0)

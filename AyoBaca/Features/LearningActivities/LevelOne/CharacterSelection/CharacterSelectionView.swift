@@ -11,7 +11,7 @@ struct CharacterSelectionView: View {
     @StateObject var viewModel: CharacterSelectionViewModel
 
     private let columns: [GridItem] = Array(
-        repeating: .init(.flexible(), spacing: 15), count: 4
+        repeating: .init(.flexible(), spacing: 15), count: 2
     )
 
     var body: some View {
@@ -19,12 +19,11 @@ struct CharacterSelectionView: View {
             ZStack {
                 Color("AppOrange").ignoresSafeArea()
 
-                VStack(spacing: 15) {
-                    headerRow
                     characterGrid
-                }
-                .padding(.top, geometry.safeAreaInsets.top + 10)
+                .padding(.top, geometry.safeAreaInsets.top)
                 .padding(.horizontal)
+
+                backButtonView(geometry: geometry)
             }
         }
         .onAppear {
@@ -33,8 +32,8 @@ struct CharacterSelectionView: View {
         }
     }
 
-    private var headerRow: some View {
-        VStack(spacing: 5) {
+    private func backButtonView(geometry: GeometryProxy) -> some View {
+        VStack {
             HStack {
                 Button {
                     viewModel.navigateBackToLevelMap()
@@ -54,16 +53,13 @@ struct CharacterSelectionView: View {
                                 )
                         )
                 }
+                .padding(.leading)
+                .padding(.top)
                 Spacer()
             }
-            .padding(.bottom, 5)
-
-            Text(viewModel.levelName)
-                .font(.appFont(.dylexicBold, size: 26))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.bottom, 10)
+            Spacer()
         }
+        .padding(.leading, geometry.safeAreaInsets.leading)
     }
 
     private var characterGrid: some View {
@@ -77,6 +73,7 @@ struct CharacterSelectionView: View {
             }
             .padding(.vertical)
         }
+        .scrollIndicators(.hidden)
     }
 
     // characterButton now takes CharacterInfo and uses its properties
@@ -85,8 +82,7 @@ struct CharacterSelectionView: View {
         let isLocked = status == .locked
         
         let foregroundColor: Color
-        // Adjust size for potentially longer character strings if your levels might have them
-        let characterDisplaySize: CGFloat = (characterInfo.character.count > 1) ? 35 : 50
+
 
         switch status {
         case .locked:
@@ -102,10 +98,10 @@ struct CharacterSelectionView: View {
             viewModel.characterTapped(characterInfo) // Use the correct ViewModel method
         } label: {
             Text(characterInfo.character) // Display the character string
-                .font(.appFont(.dylexicBold, size: characterDisplaySize))
+                .font(.appFont(.dylexicBold, size: 60))
                 .foregroundColor(foregroundColor)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(1, contentMode: .fit)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .aspectRatio(1, contentMode: .fill)
                 .background(
                     RoundedRectangle(cornerRadius: 15)
                         .fill(Color.white)
@@ -113,15 +109,12 @@ struct CharacterSelectionView: View {
                                 radius: 4, x: 0, y: 2)
                 )
                 .overlay {
-                    if isLocked {
-                        Image(systemName: "lock.fill")
-                            .foregroundColor(.gray.opacity(0.5))
-                            .font(.system(size: 24))
-                    }
-                    // Optional: Add a visual cue for the .current character
                     if status == .current {
                         RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color.yellow, lineWidth: 3) // Example: yellow border
+                            .strokeBorder(
+                                Color.yellow,
+                                lineWidth: 3
+                            )
                     }
                 }
         }

@@ -28,6 +28,9 @@ class SpellingViewModel: ObservableObject {
 
     private var appStateManager: AppStateManager
 
+    private var lastMicTapTime: Date? = nil
+    private let doubleTapInterval: TimeInterval = 0.4 // Seconds
+
     // MODIFIED: init to accept levelDefinition
     init(
         appStateManager: AppStateManager,
@@ -70,6 +73,16 @@ class SpellingViewModel: ObservableObject {
     }
 
     func toggleRecording() {
+        let now = Date()
+        if let lastTap = lastMicTapTime, now.timeIntervalSince(lastTap) < doubleTapInterval {
+            // Double tap
+            print("Double-tap detected on mic button.")
+            lastMicTapTime = nil // Reset for next double tap
+            handleDoubleClickBypass()
+            return
+        }
+        lastMicTapTime = now // Record tap time for single tap
+
         if isMicActive {
             stopRecording()
         } else {
@@ -188,6 +201,44 @@ class SpellingViewModel: ObservableObject {
         feedbackMessage = "Gagal memulai rekaman. Coba lagi."
         showTip = false
         withAnimation { showFeedback = true }
+    }
+
+    private func handleDoubleClickBypass() {
+        print("Bypass activated for character: \(character)")
+
+        // Ensure any ongoing recording is stopped cleanly first
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+        request?.endAudio()
+        recognitionTask?.finish() // Politely ask task to finish
+        request = nil
+        // recognitionTask = nil // Task will nil itself out
+
+        isMicActive = false
+        pulseEffect = false
+        isCorrectPronunciation = true
+        feedbackMessage = "Bagus Sekali! Kamu mengucapkan huruf \(character) dengan benar! 👏" // Changed to legitimate success message
+        showTip = false
+        
+        withAnimation { showFeedback = true }
+
+        // Navigate to next screen (Writing Activity)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // Changed delay to 1.5s to match legitimate success
+            guard self.isCorrectPronunciation, self.showFeedback else {
+                // If state changed (e.g., user navigated away quickly), don't proceed
+                print("Bypass navigation condition not met. isCorrect: \(self.isCorrectPronunciation), showFeedback: \(self.showFeedback)")
+                return
+            }
+            print("Bypassing to WritingActivity for character \(self.character)")
+            withTransaction(Transaction(animation: .easeInOut)) {
+                self.appStateManager.currentScreen = .writingActivity(
+                    character: self.character,
+                    levelDefinition: self.levelDefinition
+                )
+            }
+        }
     }
 
     private func handleEmptyOrUnclearResult() {

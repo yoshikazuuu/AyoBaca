@@ -21,7 +21,7 @@ struct ProfileTip: Tip {
 }
 
 // Tip for the Mascot and Streak Counter
-struct MascotAndStreakTip: Tip {
+struct StreakTip: Tip {
     var title: Text { Text("Teman dan Streak Belajar") }
     var message: Text? {
         Text(
@@ -39,18 +39,6 @@ struct PracticeButtonTip: Tip {
         Text("Kamu bisa mulai petualangan kamu latihan di tombol ini!")
     }
     var image: Image? { Image(systemName: "play.circle.fill") }
-    var options: [Option] { MaxDisplayCount(1) }
-}
-
-// Tip for the Map Button
-struct MapButtonTip: Tip {
-    var title: Text { Text("Peta Baca") }
-    var message: Text? {
-        Text(
-            "Di tombol ini kamu bisa melihat peta petualangan belajar membaca kamu sudah sampai mana!"
-        )
-    }
-    var image: Image? { Image(systemName: "location.fill") }
     var options: [Option] { MaxDisplayCount(1) }
 }
 

@@ -54,7 +54,7 @@ struct OnboardingIntro2View: View {
                             style: StrokeStyle(lineWidth: 3, dash: [8, 6])
                         )
                 )
-                .frame(width: 330, height: 280) // Adjusted height
+                .frame(width: 330, height: 400) // Adjusted height
 
             VStack(alignment: .center, spacing: 20) { // Increased spacing
                 Text(

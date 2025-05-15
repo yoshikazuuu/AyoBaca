@@ -182,10 +182,7 @@ struct AgeSetupView: View {
             Image("mascot")
                 .resizable()
                 .scaledToFit()
-                .frame(
-                    width: geometry.size.width * 0.8,
-                    height: geometry.size.height * 0.35
-                )
+                .frame(width: geometry.size.width * 1.5, height: geometry.size.height * 1)
                 .offset(y: onboardingState.animateMascot ? 0 : 100)
                 .opacity(onboardingState.animateMascot ? 1 : 0)
         }

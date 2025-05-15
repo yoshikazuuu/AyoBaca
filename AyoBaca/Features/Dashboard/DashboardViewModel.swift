@@ -20,9 +20,8 @@ class DashboardViewModel: ObservableObject {
 
     @Published var mainTips = TipGroup(.ordered) {
         ProfileTip()
-        MascotAndStreakTip()
+        StreakTip()
         PracticeButtonTip()
-        MapButtonTip()
         ProfileButtonTip()
     }
 
@@ -55,39 +54,6 @@ class DashboardViewModel: ObservableObject {
         self.childName = appStateManager.userProfile?.childName ?? "Anak"
         self.childAge = appStateManager.userProfile?.childAge ?? 0
         self.currentStreak = appStateManager.currentStreak
-    }
-
-    func startPracticeTapped() {
-        // Determine the character to practice using AppStateManager's state
-        let charToPractice =
-            appStateManager.currentLearningCharacter
-            ?? appStateManager.characterProgress.getNextCharacterToLearn()
-        
-        let levelDef = appStateManager.mainAlphabetLevelDefinition
-
-        // Ensure the character is valid and within the A-Z level's range.
-        // The mainAlphabetLevelDefinition.range should be "A"..."Z".
-        if !charToPractice.isEmpty && levelDef.range.contains(charToPractice) {
-            print(
-                "Dashboard: Starting/Resuming practice for character: \(charToPractice) from level: \(levelDef.name)"
-            )
-            // Always go to SpellingActivity first as per the new flow
-            appStateManager.currentScreen = .spellingActivity(
-                character: charToPractice,
-                levelDefinition: levelDef
-            )
-        } else {
-            // This case handles scenarios like:
-            // 1. charToPractice is "Z" and already fully completed (getNextCharacterToLearn might still return "Z").
-            // 2. charToPractice is somehow outside the A-Z range (shouldn't happen with proper logic).
-            // 3. Initial state where currentLearningCharacter is nil and getNextCharacterToLearn might point to something
-            //    that indicates the A-Z level is done or should be selected via map.
-            // Defaulting to Level Map is a safe choice here.
-            print(
-                "Dashboard: Character '\(charToPractice)' not suitable for direct practice start (e.g., 'Z' completed, invalid, or end of A-Z sequence). Navigating to Level Map."
-            )
-            appStateManager.currentScreen = .levelMap
-        }
     }
 
     func mapButtonTapped() {
