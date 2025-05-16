@@ -15,9 +15,11 @@ class SyllableViewModel: ObservableObject {
     // --- Tutorial Interaction State ---
     @Published var tutorialSlotLetters: [LetterTile?] = [nil, nil]
     // Draggable 'B' specifically for tutorial page 3 (index 2 of tutorialContents)
-    @Published var tutorialDraggable_B_ForPage3: LetterTile? = LetterTile(letter: "B", type: .consonant)
+    @Published var tutorialDraggable_B_ForPage3: LetterTile? = LetterTile(
+        letter: "B", type: .consonant)
     // Static 'A' for display on tutorial page 2 (index 1 of tutorialContents)
-    @Published var tutorialStatic_A_ForPage2: LetterTile? = LetterTile(letter: "A", type: .vowel)
+    @Published var tutorialStatic_A_ForPage2: LetterTile? = LetterTile(
+        letter: "A", type: .vowel)
     // Available letters for tutorial page 4 (index 3 of tutorialContents) - user drags 'A'
     @Published var tutorialAvailableLetters_Page4: [LetterTile] = []
     @Published var isTutorialStepCorrect: Bool? = nil
@@ -39,13 +41,45 @@ class SyllableViewModel: ObservableObject {
     }
 
     lazy var tutorialContents: [TutorialPageContent] = [
-        TutorialPageContent(id: 0, instructionText: "Halo Teman Belajar! Mari kita bermain dengan huruf dan membuat sila.", examplePrimaryText: nil, exampleSoundAccessibilityHint: nil, showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut", showMainSpeakerButton: true, shouldPrefill_B_InSlot0_ForPage4: false),
-        TutorialPageContent(id: 1, instructionText: "Sila adalah bunyi yang kita ucapkan dalam satu hembusan napas.", examplePrimaryText: "contoh:", exampleSoundAccessibilityHint: "Tombol suara ini untuk contoh sila 'BA'.", showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut", showMainSpeakerButton: true, shouldPrefill_B_InSlot0_ForPage4: false),
-        TutorialPageContent(id: 2, instructionText: "Susun huruf-huruf untuk membuat sila. Geser huruf 'B' ke dalam kotak pertama.", examplePrimaryText: nil, exampleSoundAccessibilityHint: "Tombol suara akan aktif jika kombinasi benar.", showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut", showMainSpeakerButton: false, shouldPrefill_B_InSlot0_ForPage4: false), // User drags B here
-        TutorialPageContent(id: 3, instructionText: "Sekarang, geser huruf 'A' dari bawah ke kotak kedua untuk membuat sila 'BA'. Jika benar, sila akan berbunyi!", examplePrimaryText: "Selamat mencoba!", exampleSoundAccessibilityHint: nil, showBottomTilesInteractionArea: true, bottomButtonText: "Mulai Latihan", showMainSpeakerButton: false, shouldPrefill_B_InSlot0_ForPage4: true)  // B is pre-filled, user drags A
+        TutorialPageContent(
+            id: 0,
+            instructionText:
+                "Halo Teman Belajar! Mari kita bermain dengan huruf dan membuat sila.",
+            examplePrimaryText: nil, exampleSoundAccessibilityHint: nil,
+            showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut",
+            showMainSpeakerButton: true, shouldPrefill_B_InSlot0_ForPage4: false
+        ),
+        TutorialPageContent(
+            id: 1,
+            instructionText:
+                "Sila adalah bunyi yang kita ucapkan dalam satu hembusan napas.",
+            examplePrimaryText: "contoh:",
+            exampleSoundAccessibilityHint:
+                "Tombol suara ini untuk contoh sila 'BA'.",
+            showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut",
+            showMainSpeakerButton: true, shouldPrefill_B_InSlot0_ForPage4: false
+        ),
+        TutorialPageContent(
+            id: 2,
+            instructionText:
+                "Susun huruf-huruf untuk membuat sila. Geser huruf 'B' ke dalam kotak pertama.",
+            examplePrimaryText: nil,
+            exampleSoundAccessibilityHint:
+                "Tombol suara akan aktif jika kombinasi benar.",
+            showBottomTilesInteractionArea: false, bottomButtonText: "Lanjut",
+            showMainSpeakerButton: false,
+            shouldPrefill_B_InSlot0_ForPage4: false),  // User drags B here
+        TutorialPageContent(
+            id: 3,
+            instructionText:
+                "Sekarang, geser huruf 'A' dari bawah ke kotak kedua untuk membuat sila 'BA'. Jika benar, sila akan berbunyi!",
+            examplePrimaryText: "Selamat mencoba!",
+            exampleSoundAccessibilityHint: nil,
+            showBottomTilesInteractionArea: true,
+            bottomButtonText: "Mulai Latihan", showMainSpeakerButton: false,
+            shouldPrefill_B_InSlot0_ForPage4: true),  // B is pre-filled, user drags A
     ]
 
-    
     // MARK: - Published Properties (Main Game)
     @Published var availableLetters: [LetterTile] = []
     @Published var slotLetters: [LetterTile?] = [nil, nil]  // Default two slots for CV
@@ -87,8 +121,30 @@ class SyllableViewModel: ObservableObject {
     // MARK: - Private Properties
     private var appStateManager: AppStateManager
     private let levelDefinition: LevelDefinition
-    private let consonants = ["B", "C", "D", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "X", "Y", "Z"]
-    private let vowels = ["A", "I", "U", "E", "O"]
+    public let consonants = [
+        "B",
+        "C",
+        "D",
+        "F",
+        "G",
+        "H",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z",
+    ]
+    public let vowels = ["A", "I", "U", "E", "O"]
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var taskSequence: [TaskType] = [.cv, .v, .cvc]
     private var currentTaskIndex = 0
@@ -106,40 +162,44 @@ class SyllableViewModel: ObservableObject {
 
     // MARK: - Tutorial Methods
     private func resetTutorialInteractiveState(forPageId pageId: Int) {
-            tutorialSlotLetters = [nil, nil] // Always reset slots
-            isTutorialStepCorrect = nil
-            tutorialFeedbackMessage = ""
-            showTutorialSyllableSpeaker = false
+        tutorialSlotLetters = [nil, nil]  // Always reset slots
+        isTutorialStepCorrect = nil
+        tutorialFeedbackMessage = ""
+        showTutorialSyllableSpeaker = false
 
-            // Reset 'B' for page 3 (index 2) if it's not already in a slot from a previous action on this page
-            if pageId == 2 && tutorialSlotLetters[0]?.letter != "B" {
-                tutorialDraggable_B_ForPage3 = LetterTile(letter: "B", type: .consonant)
-            } else if pageId != 2 { // If not on page 3, ensure B is available if needed later
-                 tutorialDraggable_B_ForPage3 = LetterTile(letter: "B", type: .consonant)
-            }
-
-
-            tutorialStatic_A_ForPage2 = LetterTile(letter: "A", type: .vowel) // Always available for page 2 display
-
-            tutorialAvailableLetters_Page4 = [
-                LetterTile(letter: "A", type: .vowel), LetterTile(letter: "S", type: .consonant),
-                LetterTile(letter: "I", type: .vowel), LetterTile(letter: "K", type: .consonant),
-                LetterTile(letter: "M", type: .consonant), LetterTile(letter: "U", type: .vowel)
-            ].shuffled()
+        // Reset 'B' for page 3 (index 2) if it's not already in a slot from a previous action on this page
+        if pageId == 2 && tutorialSlotLetters[0]?.letter != "B" {
+            tutorialDraggable_B_ForPage3 = LetterTile(
+                letter: "B", type: .consonant)
+        } else if pageId != 2 {  // If not on page 3, ensure B is available if needed later
+            tutorialDraggable_B_ForPage3 = LetterTile(
+                letter: "B", type: .consonant)
         }
-    
+
+        tutorialStatic_A_ForPage2 = LetterTile(letter: "A", type: .vowel)  // Always available for page 2 display
+
+        tutorialAvailableLetters_Page4 = [
+            LetterTile(letter: "A", type: .vowel),
+            LetterTile(letter: "S", type: .consonant),
+            LetterTile(letter: "I", type: .vowel),
+            LetterTile(letter: "K", type: .consonant),
+            LetterTile(letter: "M", type: .consonant),
+            LetterTile(letter: "U", type: .vowel),
+        ].shuffled()
+    }
+
     func setupTutorialPageInteractions(pageId: Int) {
-            resetTutorialInteractiveState(forPageId: pageId) // Pass pageId for context
-            guard pageId < tutorialContents.count else { return }
-            let currentPageContent = tutorialContents[pageId]
+        resetTutorialInteractiveState(forPageId: pageId)  // Pass pageId for context
+        guard pageId < tutorialContents.count else { return }
+        let currentPageContent = tutorialContents[pageId]
 
-            // Pre-fill 'B' for tutorial page 4 (index 3)
-            if currentPageContent.shouldPrefill_B_InSlot0_ForPage4 {
-                tutorialSlotLetters[0] = LetterTile(letter: "B", type: .consonant)
-                tutorialDraggable_B_ForPage3 = nil // B is in slot, not draggable from source
-            }
+        // Pre-fill 'B' for tutorial page 4 (index 3)
+        if currentPageContent.shouldPrefill_B_InSlot0_ForPage4 {
+            tutorialSlotLetters[0] = LetterTile(letter: "B", type: .consonant)
+            tutorialDraggable_B_ForPage3 = nil  // B is in slot, not draggable from source
         }
-    
+    }
+
     func nextTutorialPage() {
         if currentTutorialPage < tutorialPagesCount - 1 {
             currentTutorialPage += 1
@@ -157,42 +217,50 @@ class SyllableViewModel: ObservableObject {
     }
 
     func handleTutorialDrop(droppedTile: LetterTile, slotIndex: Int) {
-            guard slotIndex < tutorialSlotLetters.count else { return }
-            guard let currentContent = tutorialContents[safe: currentTutorialPage] else { return }
+        guard slotIndex < tutorialSlotLetters.count else { return }
+        guard let currentContent = tutorialContents[safe: currentTutorialPage]
+        else { return }
 
-            // Page 3 (index 2 in content array) - Dragging 'B'
-            if currentContent.id == 2 && droppedTile.letter == "B" && slotIndex == 0 {
-                if tutorialSlotLetters[slotIndex] == nil {
-                    tutorialSlotLetters[slotIndex] = droppedTile
-                    tutorialDraggable_B_ForPage3 = nil // 'B' is now in slot
-                    isTutorialStepCorrect = true
-                    tutorialFeedbackMessage = "Bagus! Huruf 'B' sudah di tempatnya."
-                    playTutorialSuccessSound(isStep: true)
-                } else {
-                    tutorialFeedbackMessage = "Kotak ini sudah terisi."
-                    isTutorialStepCorrect = false
-                }
-            }
-            // Page 4 (index 3 in content array) - Dragging 'A'
-            else if currentContent.id == 3 && droppedTile.letter == "A" && slotIndex == 1 {
-                guard tutorialSlotLetters[0]?.letter == "B" else {
-                    tutorialFeedbackMessage = "Pastikan huruf 'B' sudah ada di kotak pertama ya."
-                    isTutorialStepCorrect = false
-                    return
-                }
-                if tutorialSlotLetters[slotIndex] == nil {
-                    tutorialSlotLetters[slotIndex] = droppedTile // This should make 'A' appear
-                    tutorialAvailableLetters_Page4.removeAll { $0.id == droppedTile.id }
-                    checkTutorialSyllableBACompletion()
-                } else {
-                    tutorialFeedbackMessage = "Kotak ini sudah terisi."
-                    isTutorialStepCorrect = false
-                }
+        // Page 3 (index 2 in content array) - Dragging 'B'
+        if currentContent.id == 2 && droppedTile.letter == "B" && slotIndex == 0
+        {
+            if tutorialSlotLetters[slotIndex] == nil {
+                tutorialSlotLetters[slotIndex] = droppedTile
+                tutorialDraggable_B_ForPage3 = nil  // 'B' is now in slot
+                isTutorialStepCorrect = true
+                tutorialFeedbackMessage = "Bagus! Huruf 'B' sudah di tempatnya."
+                playTutorialSuccessSound(isStep: true)
             } else {
-                tutorialFeedbackMessage = "Oops! Bukan huruf atau tempat yang tepat untuk tutorial ini."
+                tutorialFeedbackMessage = "Kotak ini sudah terisi."
                 isTutorialStepCorrect = false
             }
         }
+        // Page 4 (index 3 in content array) - Dragging 'A'
+        else if currentContent.id == 3 && droppedTile.letter == "A"
+            && slotIndex == 1
+        {
+            guard tutorialSlotLetters[0]?.letter == "B" else {
+                tutorialFeedbackMessage =
+                    "Pastikan huruf 'B' sudah ada di kotak pertama ya."
+                isTutorialStepCorrect = false
+                return
+            }
+            if tutorialSlotLetters[slotIndex] == nil {
+                tutorialSlotLetters[slotIndex] = droppedTile  // This should make 'A' appear
+                tutorialAvailableLetters_Page4.removeAll {
+                    $0.id == droppedTile.id
+                }
+                checkTutorialSyllableBACompletion()
+            } else {
+                tutorialFeedbackMessage = "Kotak ini sudah terisi."
+                isTutorialStepCorrect = false
+            }
+        } else {
+            tutorialFeedbackMessage =
+                "Oops! Bukan huruf atau tempat yang tepat untuk tutorial ini."
+            isTutorialStepCorrect = false
+        }
+    }
 
     private func checkTutorialSyllableBACompletion() {
         if tutorialSlotLetters[0]?.letter == "B"
@@ -291,13 +359,14 @@ class SyllableViewModel: ObservableObject {
             showNextButton = false
             return
         }
-        
+
         // Create a string representation of the current combination
         let combination = slotLetters.compactMap { $0?.letter }.joined()
-        
+
         // Check if combination is valid based on task type
-        let isValid = validateSyllable(combination: combination, taskType: currentTaskType)
-        
+        let isValid = validateSyllable(
+            combination: combination, taskType: currentTaskType)
+
         if isValid {
             isCorrectCombination = true
             feedbackMessage = "Benar! Kamu berhasil membuat sila \(combination)"
@@ -312,30 +381,28 @@ class SyllableViewModel: ObservableObject {
             UINotificationFeedbackGenerator().notificationOccurred(.error)
         }
     }
-    
+
     // New method to validate syllables based on pattern rather than a predefined set
-    private func validateSyllable(combination: String, taskType: TaskType) -> Bool {
+    private func validateSyllable(combination: String, taskType: TaskType)
+        -> Bool
+    {
         // Get the letter types from the slots
         let letterTypes = slotLetters.compactMap { $0?.type }
-        
+
         switch taskType {
         case .cv:
             // Valid CV syllable must have exactly 2 letters: a consonant followed by a vowel
-            return letterTypes.count == 2 &&
-                   letterTypes[0] == .consonant &&
-                   letterTypes[1] == .vowel
-            
+            return letterTypes.count == 2 && letterTypes[0] == .consonant
+                && letterTypes[1] == .vowel
+
         case .v:
             // Valid V syllable must have exactly 1 letter: a vowel
-            return letterTypes.count == 1 &&
-                   letterTypes[0] == .vowel
-            
+            return letterTypes.count == 1 && letterTypes[0] == .vowel
+
         case .cvc:
             // Valid CVC syllable must have exactly 3 letters: consonant, vowel, consonant
-            return letterTypes.count == 3 &&
-                   letterTypes[0] == .consonant &&
-                   letterTypes[1] == .vowel &&
-                   letterTypes[2] == .consonant
+            return letterTypes.count == 3 && letterTypes[0] == .consonant
+                && letterTypes[1] == .vowel && letterTypes[2] == .consonant
         }
     }
 
@@ -375,21 +442,21 @@ class SyllableViewModel: ObservableObject {
         // Using single-character consonants only
         let selectedConsonants = consonants.shuffled().prefix(5)
         let selectedVowels = vowels.shuffled().prefix(3)
-        
+
         availableLetters = []
-        
+
         // Add consonants to available letters
         availableLetters.append(
             contentsOf: selectedConsonants.map {
                 LetterTile(letter: $0, type: .consonant)
             })
-        
+
         // Add vowels to available letters
         availableLetters.append(
             contentsOf: selectedVowels.map {
                 LetterTile(letter: $0, type: .vowel)
             })
-        
+
         // Shuffle available letters
         availableLetters.shuffle()
     }
@@ -405,7 +472,7 @@ class SyllableViewModel: ObservableObject {
         let selectedInitialConsonants = consonants.shuffled().prefix(3)
         let selectedVowels = vowels.shuffled().prefix(2)
         let selectedFinalConsonants = consonants.shuffled().prefix(3)
-        
+
         availableLetters = []
 
         // Add initial consonants to available letters
@@ -413,19 +480,19 @@ class SyllableViewModel: ObservableObject {
             contentsOf: selectedInitialConsonants.map {
                 LetterTile(letter: $0, type: .consonant)
             })
-        
+
         // Add vowels to available letters
         availableLetters.append(
             contentsOf: selectedVowels.map {
                 LetterTile(letter: $0, type: .vowel)
             })
-        
+
         // Add final consonants to available letters
         availableLetters.append(
             contentsOf: selectedFinalConsonants.map {
                 LetterTile(letter: $0, type: .consonant)
             })
-        
+
         // Shuffle available letters
         availableLetters.shuffle()
     }

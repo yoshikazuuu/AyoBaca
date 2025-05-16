@@ -1,11 +1,13 @@
-// ./Features/LearningActivities/LevelThree/WordFormation/WordFormationView.swift
-// View for the Word Formation Activity (Level 3)
-
 import SwiftUI
-import UniformTypeIdentifiers // Added import for UTType
+import UniformTypeIdentifiers // For drag and drop functionality
 
 struct WordFormationView: View {
     @StateObject var viewModel: WordFormationViewModel
+
+    // Define constants for consistent styling
+    private let mainBackgroundColor = Color(red: 1, green: 0.42, blue: 0.26)
+    private let tileBgColor = Color(red: 1, green: 0.88, blue: 0.56)
+    private let tileTextColor = Color(hex: "#78350F")
 
     // Define grid layout for syllable tiles
     private let tileColumns: [GridItem] = Array(
@@ -13,80 +15,293 @@ struct WordFormationView: View {
     )
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color("AppOrange").ignoresSafeArea() // Background from image
+        ZStack {
+            // Background
+            mainBackgroundColor.ignoresSafeArea()
 
+            // Mascot image (placeholder)
+            VStack {
+                Spacer()
+                Image("words-helper")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100)
+                    .padding(.trailing)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+
+            // Main content
+            GeometryReader { geometry in
                 VStack(spacing: 15) {
-                    header(geometry: geometry)
-                    instructionText
-                    imageDisplay(geometry: geometry)
-                    syllableDropSlotsContainer(geometry: geometry) // Changed to use container
-
-                    if viewModel.isWordCorrect == true {
-                        soundButton
-                    } else {
-                        // Placeholder to maintain layout consistency
-                        Color.clear.frame(height: 50)
+                    // Only show back button when not in welcome/tutorial screens
+                    if !viewModel.isWelcomeScreen && !viewModel.isTutorialScreen {
+                        backButton
+                            .padding([.top, .leading])
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    
-                    feedbackDisplay
 
-                    syllableTilesGrid(geometry: geometry)
+                    Spacer(minLength: 20)
 
-                    if viewModel.showNextButton {
-                        nextButton
+                    // Conditional content based on app state
+                    if viewModel.isWelcomeScreen {
+                        welcomeView
+                    } else if viewModel.isTutorialScreen {
+                        tutorialView
                     } else {
-                        // Placeholder to maintain layout consistency
-                        Color.clear.frame(height: 50)
+                        // Main activity content
+                        VStack(spacing: 20) {
+                            // Image display
+                            imageDisplay(geometry: geometry)
+                                .padding(.horizontal)
+
+                            // Syllable drop slots container
+                            syllableDropSlotsContainer
+                                .padding(.horizontal)
+
+                            // Sound button (only when word is correct)
+                            if viewModel.isWordCorrect == true {
+                                soundButton
+                            } else {
+                                // Placeholder to maintain layout consistency
+                                Color.clear.frame(height: 50)
+                            }
+
+                            // Feedback text
+                            feedbackDisplay
+                                .padding(.horizontal)
+
+                            // Syllable tiles grid
+                            syllableTilesGrid
+                                .padding(.horizontal)
+
+                            // Next button (only when showNextButton is true)
+                            if viewModel.showNextButton {
+                                nextButton
+                            } else {
+                                // Placeholder to maintain layout consistency
+                                Color.clear.frame(height: 50)
+                            }
+                        }
+                        .padding(.bottom, 30)
                     }
-                    Spacer(minLength: 0) // Pushes content up
+
+                    Spacer(minLength: 0)
                 }
-                .padding()
+                .frame(width: geometry.size.width)
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isWordCorrect)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.feedbackMessage)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.showNextButton)
     }
 
-    // MARK: - Subviews
-    private func header(geometry: GeometryProxy) -> some View {
-        HStack {
-            Button {
-                viewModel.navigateBack()
-            } label: {
-                Image(systemName: "arrow.left")
-                    .font(.title2.weight(.semibold))
-                    .padding(12)
-                    .background(Color.white.opacity(0.7))
-                    .foregroundColor(Color("AppOrange"))
-                    .clipShape(Circle())
-                    .shadow(radius: 3)
+    // MARK: - Welcome Screen
+    private var welcomeView: some View {
+        VStack(spacing: 20) {
+            // Speaker icon button
+            soundButton
+                .padding(.bottom, 10)
+
+            // Welcome message
+            Text("Selamat datang! Mari belajar membentuk kata-kata dari suku kata.")
+                .font(.appFont(.rethinkRegular, size: 18))
+                .foregroundColor(tileTextColor)
+                .multilineTextAlignment(.center)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.9))
+                        .shadow(color: .black.opacity(0.1), radius: 3)
+                )
+                .padding(.horizontal)
+
+            // Example text
+            Text("contoh:")
+                .font(.appFont(.rethinkRegular, size: 16))
+                .foregroundColor(.white)
+                .padding(.top, 10)
+
+            // Example image ("mata" - eye)
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.1), radius: 3)
+
+                Image(systemName: "eye.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(mainBackgroundColor)
+                    .padding(30)
             }
-            Spacer()
+            .frame(height: 150)
+            .padding(.horizontal)
+
+            // Example syllables "MA" and "TA"
+            HStack(spacing: 15) {
+                Text("MA")
+                    .font(.appFont(.dylexicBold, size: 24))
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 60)
+                    .background(Color(hex: "#94BE3E"))
+                    .cornerRadius(10)
+
+                Text("TA")
+                    .font(.appFont(.dylexicBold, size: 24))
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 60)
+                    .background(Color(hex: "#94BE3E"))
+                    .cornerRadius(10)
+            }
+            .padding(.vertical, 20)
+
+            // Start button
+            Button {
+                viewModel.startActivity()
+            } label: {
+                Text("Mulai")
+                    .font(.appFont(.rethinkBold, size: 18))
+                    .foregroundColor(tileTextColor)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 40)
+                    .background(
+                        Capsule()
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.2), radius: 3)
+                    )
+            }
+            .padding(.top, 20)
         }
-        .padding(.bottom, 5)
+        .padding()
+    }
+
+    // MARK: - Tutorial View
+    private var tutorialView: some View {
+        VStack(spacing: 20) {
+            // Speaker icon button
+            soundButton
+                .padding(.bottom, 10)
+
+            // Tutorial instruction
+            Text("Kamu akan menyusun suku kata untuk membuat kata yang lengkap.")
+                .font(.appFont(.rethinkRegular, size: 18))
+                .foregroundColor(tileTextColor)
+                .multilineTextAlignment(.center)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.9))
+                        .shadow(color: .black.opacity(0.1), radius: 3)
+                )
+                .padding(.horizontal)
+
+            // Example text
+            Text("contoh:")
+                .font(.appFont(.rethinkRegular, size: 16))
+                .foregroundColor(.white)
+                .padding(.top, 10)
+
+            // Example image ("mata" - eye)
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white)
+                    .shadow(color: .black.opacity(0.1), radius: 3)
+
+                Image(systemName: "eye.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(mainBackgroundColor)
+                    .padding(30)
+            }
+            .frame(height: 150)
+            .padding(.horizontal)
+
+            // Example syllables "MA" and "TA"
+            HStack(spacing: 15) {
+                Text("MA")
+                    .font(.appFont(.dylexicBold, size: 24))
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 60)
+                    .background(Color(hex: "#94BE3E"))
+                    .cornerRadius(10)
+
+                Text("TA")
+                    .font(.appFont(.dylexicBold, size: 24))
+                    .foregroundColor(.white)
+                    .frame(width: 70, height: 60)
+                    .background(Color(hex: "#94BE3E"))
+                    .cornerRadius(10)
+            }
+            .padding(.vertical, 20)
+
+
+            // Continue button
+            Button {
+                viewModel.completeTutorial()
+            } label: {
+                Text("Selanjutnya")
+                    .font(.appFont(.rethinkBold, size: 18))
+                    .foregroundColor(tileTextColor)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 30)
+                    .background(
+                        Capsule()
+                            .fill(Color.white)
+                            .shadow(color: .black.opacity(0.2), radius: 3)
+                    )
+            }
+            .padding(.top, 10)
+        }
+        .padding()
+    }
+
+    // MARK: - Main Game Components
+
+    private var backButton: some View {
+        Button {
+            viewModel.navigateBack()
+        } label: {
+            Text("Kembali")
+                .font(.appFont(.rethinkBold, size: 16))
+                .foregroundColor(Color("AppOrange"))
+                .padding(.horizontal, 25)
+                .padding(.vertical, 12)
+                .background(
+                    Capsule().fill(Color.white.opacity(0.95))
+                        .shadow(
+                            color: .black.opacity(0.2),
+                            radius: 3, x: 0, y: 2
+                        )
+                )
+        }
     }
 
     private var instructionText: some View {
         Text(viewModel.instructionText)
             .font(.appFont(.rethinkRegular, size: 18))
-            .foregroundColor(.white)
+            .foregroundColor(tileTextColor)
+            // Removed .lineLimit(2) to allow text to wrap to multiple lines
             .multilineTextAlignment(.center)
-            .padding(.horizontal)
-            .frame(minHeight: 50)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white.opacity(0.9))
+                    .shadow(color: .black.opacity(0.1), radius: 3)
+            )
+            .fixedSize(horizontal: false, vertical: true) // Allow vertical expansion
     }
 
     private func imageDisplay(geometry: GeometryProxy) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
-                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-            
+                .shadow(color: .black.opacity(0.1), radius: 3)
+
             if let imageName = viewModel.currentTask?.imageName {
                 if imageName == "icon_mata" {
                     Image(systemName: "eye.fill")
                         .resizable()
                         .scaledToFit()
-                        .foregroundColor(Color("AppOrange"))
+                        .foregroundColor(mainBackgroundColor)
                         .padding(30)
                 } else if imageName == "icon_buku" {
                     Image(systemName: "book.fill")
@@ -102,8 +317,8 @@ struct WordFormationView: View {
                         .padding(30)
                 } else {
                     Text(viewModel.currentTask?.targetWord ?? "")
-                       .font(.appFont(.dylexicBold, size: 40))
-                       .foregroundColor(Color("AppOrange"))
+                        .font(.appFont(.dylexicBold, size: 40))
+                        .foregroundColor(mainBackgroundColor)
                 }
             } else {
                 ProgressView()
@@ -112,35 +327,38 @@ struct WordFormationView: View {
         .frame(height: geometry.size.height * 0.22)
     }
 
-    // Container for syllable drop slots to use the helper function
-    private func syllableDropSlotsContainer(geometry: GeometryProxy) -> some View {
-        HStack(spacing: 10) {
+    private var syllableDropSlotsContainer: some View {
+        HStack(spacing: 15) {
             ForEach(0..<(viewModel.currentTask?.correctSyllables.count ?? 2), id: \.self) { index in
-                syllableSlotView(index: index, geometry: geometry) // Use the helper
+                syllableSlotView(index: index)
             }
         }
-        .padding(.vertical, 5)
+        .padding(.vertical, 10)
+        .padding(.horizontal)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white.opacity(0.9))
+                .shadow(color: .black.opacity(0.1), radius: 3)
+        )
     }
 
-    // Helper function for a single slot view to simplify the main body
-    @ViewBuilder
-    private func syllableSlotView(index: Int, geometry: GeometryProxy) -> some View {
+    private func syllableSlotView(index: Int) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color.white.opacity(0.9))
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(
+                    viewModel.isWordCorrect == false ? Color.red.opacity(0.7) : mainBackgroundColor.opacity(0.5),
+                    style: StrokeStyle(lineWidth: 2, dash: [6, 4])
+                )
                 .frame(width: 80, height: 60)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(
-                            viewModel.isWordCorrect == false ? Color.red.opacity(0.7) : Color("AppOrange").opacity(0.5),
-                            style: StrokeStyle(lineWidth: 2, dash: [6, 4])
-                        )
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.6))
                 )
 
             if let tile = viewModel.syllableSlots[safe: index], let actualTile = tile {
                 Text(actualTile.text)
                     .font(.appFont(.dylexicBold, size: 24))
-                    .foregroundColor(Color("AppOrange"))
+                    .foregroundColor(tileTextColor)
             }
         }
         .frame(width: 80, height: 60)
@@ -148,7 +366,7 @@ struct WordFormationView: View {
             viewModel.slotTapped(index)
         }
         .onDrop(
-            of: [UTType.text], // UTType.text is now recognized
+            of: [UTType.text],
             delegate: SyllableDropDelegate(
                 viewModel: viewModel,
                 slotIndex: index
@@ -156,59 +374,51 @@ struct WordFormationView: View {
         )
         .overlay {
             if viewModel.isWordCorrect == true {
-                RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.green, lineWidth: 3)
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color(hex: "#94BE3E"), lineWidth: 3)
             }
         }
     }
-    
+
     private var soundButton: some View {
         Button {
             viewModel.playCurrentWordSound()
         } label: {
             Image(systemName: "speaker.wave.2.fill")
-                .font(.system(size: 24))
-                .foregroundColor(Color("AppOrange"))
-                .padding(12)
-                .background(Circle().fill(Color.white).shadow(radius: 2))
+                .font(.system(size: 50))
+                .foregroundStyle(.white)
         }
         .frame(height: 50)
     }
-    
+
     private var feedbackDisplay: some View {
         Text(viewModel.feedbackMessage)
             .font(.appFont(.rethinkRegular, size: 16))
-            .foregroundColor(viewModel.isWordCorrect == true ? .green.opacity(0.8) : .yellow.opacity(0.9))
+            .foregroundColor(viewModel.isWordCorrect == true ? .green : .yellow)
             .padding(viewModel.feedbackMessage.isEmpty ? 0 : 8)
             .background(
-                viewModel.feedbackMessage.isEmpty ? Color.clear : Color.black.opacity(0.2)
+                viewModel.feedbackMessage.isEmpty ? Color.clear : Color.white.opacity(0.9)
             )
             .cornerRadius(10)
             .frame(minHeight: 30)
-            .animation(.easeInOut, value: viewModel.feedbackMessage)
     }
 
-    private func syllableTilesGrid(geometry: GeometryProxy) -> some View {
-        ScrollView {
-            LazyVGrid(columns: tileColumns, spacing: 15) {
-                ForEach(viewModel.availableSyllableTiles) { tile in
-                    Text(tile.text)
-                        .font(.appFont(.dylexicBold, size: 22))
-                        .foregroundColor(Color("AppOrange"))
-                        .frame(minWidth: 0, maxWidth: .infinity)
-                        .frame(height: 50)
-                        .background(Color("AppYellow"))
-                        .cornerRadius(10)
-                        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                        .onTapGesture {
-                             viewModel.tileTapped(tile)
-                        }
-                        .draggable(tile.text)
-                }
+    private var syllableTilesGrid: some View {
+        LazyVGrid(columns: tileColumns, spacing: 15) {
+            ForEach(viewModel.availableSyllableTiles) { tile in
+                Text(tile.text)
+                    .font(.appFont(.dylexicBold, size: 22))
+                    .foregroundColor(tileTextColor)
+                    .frame(width: 60, height: 60)
+                    .background(tileBgColor)
+                    .cornerRadius(10)
+                    .shadow(color: .black.opacity(0.1), radius: 2)
+                    .onTapGesture {
+                        viewModel.tileTapped(tile)
+                    }
+                    .draggable(tile.text)
             }
-            .padding(.horizontal)
         }
-        .frame(maxHeight: geometry.size.height * 0.25)
     }
 
     private var nextButton: some View {
@@ -217,15 +427,16 @@ struct WordFormationView: View {
         } label: {
             Text("Selanjutnya")
                 .font(.appFont(.rethinkBold, size: 18))
-                .foregroundColor(.white)
+                .foregroundColor(tileTextColor)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 30)
-                .background(Color.gray.opacity(0.7))
-                .cornerRadius(25)
-                .shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 2)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.2), radius: 3)
+                )
         }
         .frame(height: 50)
-        .padding(.top, 5)
     }
 }
 
@@ -235,7 +446,7 @@ struct SyllableDropDelegate: DropDelegate {
     let slotIndex: Int
 
     func performDrop(info: DropInfo) -> Bool {
-        guard let itemProvider = info.itemProviders(for: [UTType.text]).first else { // UTType.text is now recognized
+        guard let itemProvider = info.itemProviders(for: [UTType.text]).first else {
             return false
         }
 
@@ -246,7 +457,7 @@ struct SyllableDropDelegate: DropDelegate {
                         viewModel.handleDrop(syllableTile: droppedTile, atSlotIndex: slotIndex)
                     }
                 } else if let alreadySlottedTile = viewModel.syllableSlots.compactMap({$0}).first(where: {$0.text == text}) {
-                     DispatchQueue.main.async {
+                    DispatchQueue.main.async {
                         viewModel.handleDrop(syllableTile: alreadySlottedTile, atSlotIndex: slotIndex)
                     }
                 }

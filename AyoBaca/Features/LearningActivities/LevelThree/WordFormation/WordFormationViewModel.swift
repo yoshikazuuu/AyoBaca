@@ -22,8 +22,11 @@ class WordFormationViewModel: ObservableObject {
     @Published var isWordCorrect: Bool? = nil // nil: not checked, true: correct, false: incorrect
     @Published var feedbackMessage: String = ""
     @Published var showNextButton: Bool = false
-    @Published var instructionText: String =
-        "Susun suku kata ini menjadi sebuah kata!"
+    @Published var instructionText: String = "Susun suku kata ini menjadi sebuah kata!"
+    
+    // Properties for screen navigation
+    @Published var isWelcomeScreen: Bool = true
+    @Published var isTutorialScreen: Bool = false
 
     // MARK: - Private Properties
     private var appStateManager: AppStateManager
@@ -31,6 +34,7 @@ class WordFormationViewModel: ObservableObject {
     private var wordTasks: [WordTask] = []
     private var currentTaskIndex: Int = 0
     private let speechSynthesizer = AVSpeechSynthesizer()
+    private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Structs for Tasks and Tiles
     struct WordTask {
@@ -50,6 +54,11 @@ class WordFormationViewModel: ObservableObject {
     init(appStateManager: AppStateManager, levelDefinition: LevelDefinition) {
         self.appStateManager = appStateManager
         self.levelDefinition = levelDefinition
+        
+        // Start with welcome screen
+        self.isWelcomeScreen = true
+        self.isTutorialScreen = false
+        
         loadWordTasks()
         setupCurrentTask()
     }
@@ -163,7 +172,6 @@ class WordFormationViewModel: ObservableObject {
         }
     }
 
-
     private func checkWordCompletion() {
         guard let task = currentTask else { return }
         // Check if all slots are filled
@@ -190,7 +198,14 @@ class WordFormationViewModel: ObservableObject {
     }
 
     func playCurrentWordSound() {
-        guard let task = currentTask, isWordCorrect == true else { return }
+        // If on welcome or tutorial screen, play example sound instead
+        if isWelcomeScreen || isTutorialScreen {
+            playSound(for: "MATA")
+            return
+        }
+        
+        // For main game, play the current word sound when correct
+        guard let task = currentTask else { return }
         playSound(for: task.targetWord)
     }
     
@@ -208,5 +223,21 @@ class WordFormationViewModel: ObservableObject {
 
     func navigateBack() {
         appStateManager.goBack()
+    }
+    
+    // MARK: - Welcome and Tutorial Screen Methods
+    
+    /// Start the activity by transitioning from welcome screen to tutorial
+    func startActivity() {
+        isWelcomeScreen = false
+        isTutorialScreen = true
+    }
+    
+    /// Complete tutorial and start main game
+    func completeTutorial() {
+        isTutorialScreen = false
+        // Reset task state to ensure everything starts fresh
+        currentTaskIndex = 0
+        setupCurrentTask()
     }
 }
