@@ -62,11 +62,10 @@ class CharacterSelectionViewModel: ObservableObject {
     }
 
     func onAppear() {
-        // Refresh data when the view appears, in case progress changed elsewhere
         self.currentLearningCharacterDisplay =
             appStateManager.currentLearningCharacter
             ?? appStateManager.characterProgress.getNextCharacterToLearn()
-        loadCharacterData() // This will internally call refreshCharacterStatuses
+        loadCharacterData() // This internally calls refreshCharacterStatuses
     }
 
     private func loadCharacterData() {
@@ -149,4 +148,6 @@ class CharacterSelectionViewModel: ObservableObject {
         // The withAnimation is handled by goBack or NavigationStack's default
         appStateManager.goBack()
     }
+    
+    
 }

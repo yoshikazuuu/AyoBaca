@@ -233,7 +233,7 @@ class SpellingViewModel: ObservableObject {
             }
             print("Bypassing to WritingActivity for character \(self.character)")
             withTransaction(Transaction(animation: .easeInOut)) {
-                self.appStateManager.replaceNavigationStack(with: .writingActivity(
+                self.appStateManager.navigateTo(.writingActivity(
                     character: self.character,
                     levelDefinition: self.levelDefinition
                 ))
@@ -273,8 +273,8 @@ class SpellingViewModel: ObservableObject {
                 // Ensure we are still on this screen and correct before navigating
                 guard self.isCorrectPronunciation, self.showFeedback else { return }
                 withTransaction(Transaction(animation: .easeInOut)) {
-                    self.appStateManager.replaceNavigationStack(with: .writingActivity(
-                        character: self.character, // Current character being practiced
+                    self.appStateManager.navigateTo(.writingActivity(
+                        character: self.character,
                         levelDefinition: self.levelDefinition
                     ))
                 }

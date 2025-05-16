@@ -5,9 +5,9 @@
 //  Created by Jerry Febriano on 15/05/25.
 //
 
-import SwiftUI
 import Combine
-import CoreGraphics // Keep for potential future image processing
+import CoreGraphics  // Keep for potential future image processing
+import SwiftUI
 
 @MainActor
 class WritingViewModel: ObservableObject {
@@ -38,7 +38,7 @@ class WritingViewModel: ObservableObject {
         self.levelDefinition = levelDefinition
         self.instructionText =
             "Sekarang, coba gambar huruf \"\(self.targetCharacter)\" di kotak!"
-        self.currentDrawingPath = DrawingPath(color: .black, lineWidth: 10.0) // Increased default line width
+        self.currentDrawingPath = DrawingPath(color: .black, lineWidth: 10.0)  // Increased default line width
     }
 
     // MARK: - User Actions
@@ -102,32 +102,21 @@ class WritingViewModel: ObservableObject {
         {
             currentLevelLastChar = rangeUpper.uppercased()
         } else {
-            currentLevelLastChar = "Z" // Fallback for A-Z level
+            currentLevelLastChar = "Z"  // Fallback for A-Z level
             print(
                 "Warning: Could not accurately determine last char for level \(levelDefinition.name) (range: \(levelDefinition.range)). Using '\(currentLevelLastChar)' as fallback."
             )
         }
 
         if targetCharacter.uppercased() == currentLevelLastChar {
-            appStateManager.replaceNavigationStack(with: .levelMap)
+            // Level Complete: Pop back to Level Map
+            appStateManager.popToLevelMap()
         } else {
-            if let nextLearningChar = appStateManager.currentLearningCharacter,
-                !nextLearningChar.isEmpty,
-                nextLearningChar.uppercased()
-                    != targetCharacter.uppercased()
-            {
-                appStateManager.replaceNavigationStack(with: .spellingActivity(
-                    character: nextLearningChar,
-                    levelDefinition: self.levelDefinition
-                ))
-            } else {
-                // Fallback if next char is same or invalid
-                print(
-                    "Warning: Next learning character issue after writing \(targetCharacter). Next: \(appStateManager.currentLearningCharacter ?? "nil"). Navigating to CharacterSelection."
-                )
-                appStateManager.replaceNavigationStack(with: .characterSelection(
-                    levelDefinition: self.levelDefinition))
-            }
+            // Next Character: Pop back to Character Selection
+            // appStateManager.setCurrentLearningCharacter(nextCharToLearn) is already called
+            appStateManager.popToCharacterSelection()
+            // The CharacterSelectionViewModel should observe appStateManager.currentLearningCharacter
+            // and update its display/state accordingly. The user would then tap the new character.
         }
     }
 
@@ -135,8 +124,7 @@ class WritingViewModel: ObservableObject {
         clearDrawing()
         withAnimation(.easeInOut) {
             // Navigate back to character selection of the *current* level
-            appStateManager.replaceNavigationStack(with: .characterSelection(
-                levelDefinition: self.levelDefinition))
+            appStateManager.popToCharacterSelection()
         }
     }
 }

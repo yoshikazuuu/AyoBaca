@@ -261,6 +261,62 @@ class AppStateManager: ObservableObject {
     func replaceNavigationStack(with screen: AppScreen) {
         navigationPath = [screen]
     }
+    
+    @MainActor
+    func popToMostRecentScreen(matching predicate: (AppScreen) -> Bool, fallbackScreen: AppScreen? = nil) {
+        guard !navigationPath.isEmpty else { return }
+
+        if let index = navigationPath.lastIndex(where: predicate) {
+            // If the screen is found and not already the top one
+            if index < navigationPath.count - 1 {
+                navigationPath.removeLast(navigationPath.count - 1 - index)
+            }
+            // Now the screen matching predicate is at the top of the stack.
+        } else {
+            // Screen not found in path. This indicates a potentially broken stack or unexpected flow.
+            print("Warning: Screen matching predicate not found in path: \(navigationPath).")
+            if let fallback = fallbackScreen {
+                print("Navigating to fallback screen: \(fallback)")
+                replaceNavigationStack(with: fallback) // Use replace for recovery
+            } else {
+                print("No fallback screen provided. Popping to root.")
+                if navigationPath.count > 1 {
+                     navigationPath.removeSubrange(1..<navigationPath.count) // Pop to first element
+                } else if !navigationPath.isEmpty {
+                    // If only one item, and it's not the one we want, this is tricky.
+                    // Consider replacing with a known safe state like .mainApp
+                    replaceNavigationStack(with: .mainApp)
+                }
+            }
+        }
+    }
+
+    // Specific helper for popping to CharacterSelection
+    @MainActor
+    func popToCharacterSelection() {
+        popToMostRecentScreen(
+            matching: { screen in
+                if case .characterSelection = screen { return true }
+                return false
+            },
+            // Fallback if CharacterSelection is somehow not in the stack (should be an error)
+            // You might need to pass the levelDefinition if you need to create a new CS path.
+            // For now, a more generic fallback like LevelMap might be safer if CS is missing.
+            fallbackScreen: .levelMap
+        )
+    }
+
+    // Specific helper for popping to LevelMap
+    @MainActor
+    func popToLevelMap() {
+        popToMostRecentScreen(
+            matching: { screen in
+                if case .levelMap = screen { return true }
+                return false
+            },
+            fallbackScreen: .mainApp // Fallback to dashboard if LevelMap isn't there
+        )
+    }
 
     #if DEBUG
         @MainActor
