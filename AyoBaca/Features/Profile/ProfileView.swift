@@ -47,7 +47,7 @@ struct ProfileView: View {
                         }
                         .foregroundColor(
                             .appYellow
-                        ) // Or .white if bar is colored
+                        )
                     }
                 }
             }
