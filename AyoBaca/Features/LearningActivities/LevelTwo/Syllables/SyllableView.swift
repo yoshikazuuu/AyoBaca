@@ -67,7 +67,7 @@ struct SyllableView: View {
 
                 VStack(spacing: 15) {
                     Text(viewModel.currentTaskType.instructions)
-                        .font(.appFont(.rethinkRegular, size: 18))
+                        .levelStyle(size: 18)
                         .foregroundColor(tileTextColor)
                         .multilineTextAlignment(.center)
                         .padding()
@@ -139,7 +139,7 @@ struct SyllableView: View {
                     }
 
                     Text(content.instructionText)
-                        .font(.appFont(.rethinkRegular, size: 18))
+                        .levelStyle(size: 18)
                         .foregroundColor(tileTextColor)
                         .multilineTextAlignment(.center)
                         .padding()
@@ -367,7 +367,7 @@ struct SyllableView: View {
                             : Color("AppOrange").opacity(0.8)))
             }.disabled(isSpeakerDisabled)
             Text(hintText)
-                .font(.appFont(.rethinkRegular, size: 12))
+                .dyslexicTextStyle(size: 12)
                 .foregroundColor(tileTextColor.opacity(0.9))
                 .fixedSize(horizontal: false, vertical: true)  // Allow text to wrap
                 .lineLimit(2)
@@ -383,7 +383,7 @@ struct SyllableView: View {
                 viewModel.navigateBack()
             } label: {
                 Text("Kembali")
-                    .font(.appFont(.rethinkBold, size: 16))
+                    .navigationStyle(size: 16)
                     .foregroundColor(Color("AppOrange"))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
@@ -413,7 +413,7 @@ struct SyllableView: View {
     private func feedbackMessageView(text: String, isCorrect: Bool) -> some View
     {
         Text(text)
-            .font(.appFont(.rethinkRegular, size: 14))
+            .dyslexicTextStyle(size: 14)
             .foregroundColor(
                 isCorrect ? Color.green.opacity(0.9) : Color.red.opacity(0.9)
             )
@@ -462,8 +462,8 @@ struct SyllableView: View {
         textColor: Color, isDraggable: Bool, isTutorial: Bool
     ) -> some View {
         Text(tile.letter)
-            .font(.appFont(.dylexicBold, size: 36))
-            .foregroundColor(textColor)
+                            .dyslexicTextStyle(size: 36, isBold: true)
+                .foregroundColor(textColor)
             .frame(width: 60, height: 60)
             .background(
                 RoundedRectangle(cornerRadius: 10)

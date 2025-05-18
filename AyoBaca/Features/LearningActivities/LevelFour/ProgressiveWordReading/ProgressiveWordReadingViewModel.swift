@@ -12,6 +12,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import Foundation
 
 @MainActor
 class ProgressiveWordReadingViewModel: ObservableObject {
@@ -20,6 +21,7 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     @Published var highlightedLength: Int = 0
     @Published var attributedWordDisplay: AttributedString = ""
     @Published var progress: Double = 0.0
+    @Published var currentWordIndex: Int = 0 // Used for stable view ID
     @Published var instructionText: String =
         "Kamu akan membaca 1 kata secara perlahan kemudian dengan lebih cepat!"
     @Published var showCompletionAnimation: Bool = false // For confetti or similar
@@ -28,11 +30,16 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     private var appStateManager: AppStateManager
     private let levelDefinition: LevelDefinition
     private var wordList: [WordData] = []
-    private var currentWordIndex: Int = 0
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var speechSpeedRate: Float = AVSpeechUtteranceMinimumSpeechRate * 1.1 // Slower
     private var canAdvanceWord: Bool = false
+    private var audioSessionConfigured = false
 
+    // Add deinit to clean up resources
+    deinit {
+        // Safe to call nonisolated method from deinit
+        deactivateAudioSessionNonisolated()
+    }
 
     struct WordData: Identifiable {
         let id = UUID()
@@ -44,7 +51,43 @@ class ProgressiveWordReadingViewModel: ObservableObject {
         self.appStateManager = appStateManager
         self.levelDefinition = levelDefinition
         loadWords()
+        self.currentWordIndex = 0
         setupCurrentWord()
+    }
+
+    // Configure audio session for playback
+    private func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playback, mode: .default)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            audioSessionConfigured = true
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    // Deactivate audio session when done - for use within MainActor context
+    private func deactivateAudioSession() {
+        if audioSessionConfigured {
+            deactivateAudioSessionNonisolated()
+            audioSessionConfigured = false
+        }
+    }
+    
+    // Nonisolated version that can be called from any thread including deinit
+    private nonisolated func deactivateAudioSessionNonisolated() {
+        // Stop any speaking first
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        
+        // Always try to deactivate the session, without checking the flag
+        // (since we can't access MainActor-isolated properties)
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error.localizedDescription)")
+        }
     }
 
     private func loadWords() {
@@ -68,7 +111,8 @@ class ProgressiveWordReadingViewModel: ObservableObject {
             progress = 1.0
             showCompletionAnimation = true // Trigger overall completion
             canAdvanceWord = false
-            // Navigate back to map after a delay
+            // Deactivate audio session and navigate back to map after a delay
+            deactivateAudioSession()
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 self.appStateManager.navigateTo(.levelMap)
             }
@@ -120,7 +164,10 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     
     func nextWord() {
         currentWordIndex += 1
-        setupCurrentWord()
+        // Small delay to allow animations to complete smoothly
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.setupCurrentWord()
+        }
     }
 
     private func updateAttributedWord() {
@@ -134,10 +181,10 @@ class ProgressiveWordReadingViewModel: ObservableObject {
             var charString = AttributedString(String(character))
             if index < highlightedLength {
                 charString.foregroundColor = .orange // Highlighted part
-                charString.font = .system(size: 60, weight: .bold, design: .rounded)
+                charString.font = .custom(FontType.dylexicBold.rawValue, size: 50)
             } else {
                 charString.foregroundColor = .white.opacity(0.7) // Upcoming part
-                charString.font = .system(size: 60, weight: .medium, design: .rounded)
+                charString.font = .custom(FontType.dylexicRegular.rawValue, size: 50)
             }
             result.append(charString)
         }
@@ -153,6 +200,11 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     }
 
     func playFullWordSound(useConfiguredSpeed: Bool = false) {
+        // Configure audio session before playing
+        if !audioSessionConfigured {
+            configureAudioSession()
+        }
+        
         guard let wordText = currentWord?.text else { return }
         let utterance = AVSpeechUtterance(string: wordText)
         utterance.voice = AVSpeechSynthesisVoice(language: "id-ID")
@@ -161,6 +213,11 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     }
 
     private func speakCurrentSegment() {
+        // Configure audio session before playing
+        if !audioSessionConfigured {
+            configureAudioSession()
+        }
+        
         guard let wordText = currentWord?.text, highlightedLength > 0, highlightedLength <= wordText.count else { return }
         
         let segmentToSpeak: String
@@ -177,6 +234,8 @@ class ProgressiveWordReadingViewModel: ObservableObject {
     }
 
     func navigateBack() {
+        // Deactivate audio session before navigating away
+        deactivateAudioSession()
         appStateManager.goBack()
     }
 }

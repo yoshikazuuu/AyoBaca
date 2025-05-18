@@ -39,7 +39,7 @@ struct CharacterSelectionView: View {
                     viewModel.navigateBackToLevelMap()
                 } label: {
                     Text("Kembali")
-                        .font(.appFont(.rethinkBold, size: 16))
+                        .navigationStyle(size: 16)
                         .foregroundColor(Color("AppOrange"))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
@@ -98,7 +98,7 @@ struct CharacterSelectionView: View {
             viewModel.characterTapped(characterInfo) // Use the correct ViewModel method
         } label: {
             Text(characterInfo.character) // Display the character string
-                .font(.appFont(.dylexicBold, size: 60))
+                .dyslexicTextStyle(size: 60, isBold: true)
                 .foregroundColor(foregroundColor)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .aspectRatio(1, contentMode: .fill)

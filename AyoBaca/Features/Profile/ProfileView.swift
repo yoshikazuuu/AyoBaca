@@ -45,6 +45,7 @@ struct ProfileView: View {
                             Image(systemName: "chevron.left")
                             Text("Kembali")
                         }
+                        .navigationStyle(size: 16)
                         .foregroundColor(
                             .appYellow
                         )
@@ -88,10 +89,10 @@ struct ProfileView: View {
             }
             VStack(spacing: 4) {
                 Text(viewModel.childName)
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(Color("AppOrange"))
                 Text("\(viewModel.childAge) tahun")
-                    .font(.appFont(.rethinkRegular, size: 16))
+                    .dyslexicTextStyle(size: 16)
                     .foregroundColor(.gray)
             }
         }
@@ -151,7 +152,7 @@ struct ProfileView: View {
                     .padding(.leading, 10)
 
                 Text(title)
-                    .font(.appFont(.rethinkRegular, size: 16))
+                    .dyslexicTextStyle(size: 16)
                     .foregroundColor(.black.opacity(0.8)) // Slightly less stark black
 
                 Spacer()
@@ -176,7 +177,7 @@ struct ProfileView: View {
         var body: some View {
             VStack(alignment: .leading, spacing: 8) { // Increased spacing
                 Text(title)
-                    .font(.appFont(.rethinkBold, size: 18))
+                    .levelStyle(size: 18, isBold: true)
                     .padding(.leading, 12) // Align with content
                     .foregroundColor(Color("AppOrange"))
                 

@@ -12,6 +12,13 @@ class PronunciationHelperViewModel: ObservableObject {
     @Published var currentIndex: Int = 0
 
     private let speechSynthesizer = AVSpeechSynthesizer()
+    private var audioSessionConfigured = false
+    
+    // Add deinit to clean up resources
+    deinit {
+        // Safe to call nonisolated method from deinit
+        deactivateAudioSessionNonisolated()
+    }
 
     init(
         appStateManager: AppStateManager,
@@ -46,7 +53,7 @@ class PronunciationHelperViewModel: ObservableObject {
             let upperScalar = upperChar.unicodeScalars.first,
             lowerScalar.value <= upperScalar.value
         {
-            // Build [“A”,“B”,…] (or any UnicodeScalar progression)
+            // Build ["A","B",…] (or any UnicodeScalar progression)
             charactersInRange = (lowerScalar.value...upperScalar.value)
                 .compactMap(UnicodeScalar.init)
                 .map { String($0).uppercased() }
@@ -86,7 +93,47 @@ class PronunciationHelperViewModel: ObservableObject {
         currentIndex < charactersInRange.count - 1 && !charactersInRange.isEmpty
     }
 
+    // Configure audio session for playback
+    private func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playback, mode: .default)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            audioSessionConfigured = true
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    // Deactivate audio session when done - for use within MainActor context
+    private func deactivateAudioSession() {
+        if audioSessionConfigured {
+            deactivateAudioSessionNonisolated()
+            audioSessionConfigured = false
+        }
+    }
+    
+    // Nonisolated version that can be called from any thread including deinit
+    private nonisolated func deactivateAudioSessionNonisolated() {
+        // Stop any speaking first
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        
+        // Always try to deactivate the session, without checking the flag
+        // (since we can't access MainActor-isolated properties)
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error.localizedDescription)")
+        }
+    }
+
     func playSound() {
+        // Configure audio session before playing
+        if !audioSessionConfigured {
+            configureAudioSession()
+        }
+        
         // Clear any pending speech
         speechSynthesizer.stopSpeaking(at: .immediate)
 
@@ -190,6 +237,9 @@ class PronunciationHelperViewModel: ObservableObject {
     }
 
     func startPractice() {
+        // Deactivate audio session before navigating
+        deactivateAudioSession()
+        
         // Navigate to SpellingActivity, pushing it onto the stack
         appStateManager.navigateTo(
             .spellingActivity(
@@ -197,6 +247,8 @@ class PronunciationHelperViewModel: ObservableObject {
     }
 
     func goBack() {
+        // Deactivate audio session before navigating away
+        deactivateAudioSession()
         appStateManager.goBack()
     }
 }

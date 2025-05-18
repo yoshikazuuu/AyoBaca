@@ -35,6 +35,13 @@ class WordFormationViewModel: ObservableObject {
     private var currentTaskIndex: Int = 0
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var cancellables = Set<AnyCancellable>()
+    private var audioSessionConfigured = false
+    
+    // Add deinit to clean up resources
+    deinit {
+        // Safe to call nonisolated method from deinit
+        deactivateAudioSessionNonisolated()
+    }
 
     // MARK: - Structs for Tasks and Tiles
     struct WordTask {
@@ -61,6 +68,41 @@ class WordFormationViewModel: ObservableObject {
         
         loadWordTasks()
         setupCurrentTask()
+    }
+    
+    // Configure audio session for playback
+    private func configureAudioSession() {
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playback, mode: .default)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+            audioSessionConfigured = true
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    // Deactivate audio session when done - for use within MainActor context
+    private func deactivateAudioSession() {
+        if audioSessionConfigured {
+            deactivateAudioSessionNonisolated()
+            audioSessionConfigured = false
+        }
+    }
+    
+    // Nonisolated version that can be called from any thread including deinit
+    private nonisolated func deactivateAudioSessionNonisolated() {
+        // Stop any speaking first
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        
+        // Always try to deactivate the session, without checking the flag
+        // (since we can't access MainActor-isolated properties)
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error.localizedDescription)")
+        }
     }
 
     private func loadWordTasks() {
@@ -96,6 +138,7 @@ class WordFormationViewModel: ObservableObject {
             feedbackMessage = "Selamat! Kamu telah menyelesaikan semua kata!"
             showNextButton = false // Or navigate back to map
             // Consider navigating back to map or showing a level completion screen
+            deactivateAudioSession()
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.appStateManager.navigateTo(.levelMap) // Or popToRoot / specific screen
             }
@@ -210,6 +253,11 @@ class WordFormationViewModel: ObservableObject {
     }
     
     private func playSound(for text: String) {
+        // Configure audio session before playing
+        if !audioSessionConfigured {
+            configureAudioSession()
+        }
+        
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "id-ID")
         utterance.rate = AVSpeechUtteranceMinimumSpeechRate * 0.9
@@ -222,6 +270,8 @@ class WordFormationViewModel: ObservableObject {
     }
 
     func navigateBack() {
+        // Deactivate audio session before navigating away
+        deactivateAudioSession()
         appStateManager.goBack()
     }
     

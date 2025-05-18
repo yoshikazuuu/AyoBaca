@@ -56,7 +56,7 @@ struct LevelMapView: View {
                     viewModel.navigateBackToDashboard()
                 } label: {
                     Text("Kembali")
-                        .font(.appFont(.rethinkBold, size: 16))
+                        .navigationStyle(size: 16)
                         .foregroundColor(Color("AppOrange"))
                         .padding(.horizontal, 25)
                         .padding(.vertical, 12)
@@ -93,7 +93,7 @@ struct LevelMapView: View {
             }
 
             Text("\(level.id)")
-                .font(.appFont(.dylexicBold, size: markerSize * 0.4)) // Relative font size
+                .levelStyle(size: markerSize * 0.4, isBold: true) // Use our new level style
                 .foregroundColor(
                     level.status == .locked ? .gray.opacity(0.8) : .white
                 )

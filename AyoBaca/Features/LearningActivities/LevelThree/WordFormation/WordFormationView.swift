@@ -104,7 +104,7 @@ struct WordFormationView: View {
 
             // Welcome message
             Text("Selamat datang! Mari belajar membentuk kata-kata dari suku kata.")
-                .font(.appFont(.rethinkRegular, size: 18))
+                .levelStyle(size: 18)
                 .foregroundColor(tileTextColor)
                 .multilineTextAlignment(.center)
                 .padding()
@@ -117,7 +117,7 @@ struct WordFormationView: View {
 
             // Example text
             Text("contoh:")
-                .font(.appFont(.rethinkRegular, size: 16))
+                .dyslexicTextStyle(size: 16)
                 .foregroundColor(.white)
                 .padding(.top, 10)
 
@@ -139,14 +139,14 @@ struct WordFormationView: View {
             // Example syllables "MA" and "TA"
             HStack(spacing: 15) {
                 Text("MA")
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(.white)
                     .frame(width: 70, height: 60)
                     .background(Color(hex: "#94BE3E"))
                     .cornerRadius(10)
 
                 Text("TA")
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(.white)
                     .frame(width: 70, height: 60)
                     .background(Color(hex: "#94BE3E"))
@@ -159,7 +159,7 @@ struct WordFormationView: View {
                 viewModel.startActivity()
             } label: {
                 Text("Mulai")
-                    .font(.appFont(.rethinkBold, size: 18))
+                    .navigationStyle(size: 18)
                     .foregroundColor(tileTextColor)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 40)
@@ -183,7 +183,7 @@ struct WordFormationView: View {
 
             // Tutorial instruction
             Text("Kamu akan menyusun suku kata untuk membuat kata yang lengkap.")
-                .font(.appFont(.rethinkRegular, size: 18))
+                .levelStyle(size: 18)
                 .foregroundColor(tileTextColor)
                 .multilineTextAlignment(.center)
                 .padding()
@@ -196,7 +196,7 @@ struct WordFormationView: View {
 
             // Example text
             Text("contoh:")
-                .font(.appFont(.rethinkRegular, size: 16))
+                .dyslexicTextStyle(size: 16)
                 .foregroundColor(.white)
                 .padding(.top, 10)
 
@@ -218,14 +218,14 @@ struct WordFormationView: View {
             // Example syllables "MA" and "TA"
             HStack(spacing: 15) {
                 Text("MA")
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(.white)
                     .frame(width: 70, height: 60)
                     .background(Color(hex: "#94BE3E"))
                     .cornerRadius(10)
 
                 Text("TA")
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(.white)
                     .frame(width: 70, height: 60)
                     .background(Color(hex: "#94BE3E"))
@@ -239,7 +239,7 @@ struct WordFormationView: View {
                 viewModel.completeTutorial()
             } label: {
                 Text("Selanjutnya")
-                    .font(.appFont(.rethinkBold, size: 18))
+                    .navigationStyle(size: 18)
                     .foregroundColor(tileTextColor)
                     .padding(.vertical, 12)
                     .padding(.horizontal, 30)
@@ -257,27 +257,27 @@ struct WordFormationView: View {
     // MARK: - Main Game Components
 
     private var backButton: some View {
-        Button {
-            viewModel.navigateBack()
-        } label: {
-            Text("Kembali")
-                .font(.appFont(.rethinkBold, size: 16))
-                .foregroundColor(Color("AppOrange"))
-                .padding(.horizontal, 25)
-                .padding(.vertical, 12)
-                .background(
-                    Capsule().fill(Color.white.opacity(0.95))
-                        .shadow(
-                            color: .black.opacity(0.2),
-                            radius: 3, x: 0, y: 2
-                        )
-                )
-        }
+                    Button {
+                viewModel.navigateBack()
+            } label: {
+                Text("Kembali")
+                    .navigationStyle(size: 16)
+                    .foregroundColor(Color("AppOrange"))
+                    .padding(.horizontal, 25)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule().fill(Color.white.opacity(0.95))
+                            .shadow(
+                                color: .black.opacity(0.2),
+                                radius: 3, x: 0, y: 2
+                            )
+                    )
+            }
     }
 
     private var instructionText: some View {
         Text(viewModel.instructionText)
-            .font(.appFont(.rethinkRegular, size: 18))
+            .levelStyle(size: 18)
             .foregroundColor(tileTextColor)
             // Removed .lineLimit(2) to allow text to wrap to multiple lines
             .multilineTextAlignment(.center)
@@ -317,7 +317,7 @@ struct WordFormationView: View {
                         .padding(30)
                 } else {
                     Text(viewModel.currentTask?.targetWord ?? "")
-                        .font(.appFont(.dylexicBold, size: 40))
+                        .dyslexicTextStyle(size: 40, isBold: true)
                         .foregroundColor(mainBackgroundColor)
                 }
             } else {
@@ -357,7 +357,7 @@ struct WordFormationView: View {
 
             if let tile = viewModel.syllableSlots[safe: index], let actualTile = tile {
                 Text(actualTile.text)
-                    .font(.appFont(.dylexicBold, size: 24))
+                    .dyslexicTextStyle(size: 24, isBold: true)
                     .foregroundColor(tileTextColor)
             }
         }
@@ -393,7 +393,7 @@ struct WordFormationView: View {
 
     private var feedbackDisplay: some View {
         Text(viewModel.feedbackMessage)
-            .font(.appFont(.rethinkRegular, size: 16))
+            .dyslexicTextStyle(size: 16)
             .foregroundColor(viewModel.isWordCorrect == true ? .green : .yellow)
             .padding(viewModel.feedbackMessage.isEmpty ? 0 : 8)
             .background(
@@ -407,7 +407,7 @@ struct WordFormationView: View {
         LazyVGrid(columns: tileColumns, spacing: 15) {
             ForEach(viewModel.availableSyllableTiles) { tile in
                 Text(tile.text)
-                    .font(.appFont(.dylexicBold, size: 22))
+                    .dyslexicTextStyle(size: 22, isBold: true)
                     .foregroundColor(tileTextColor)
                     .frame(width: 60, height: 60)
                     .background(tileBgColor)
@@ -426,7 +426,7 @@ struct WordFormationView: View {
             viewModel.nextWordTask()
         } label: {
             Text("Selanjutnya")
-                .font(.appFont(.rethinkBold, size: 18))
+                .navigationStyle(size: 18)
                 .foregroundColor(tileTextColor)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 30)
